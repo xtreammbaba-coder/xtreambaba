@@ -3,7 +3,358 @@
 <head>
 <meta charset="UTF-8">
 <title>Xtream Baba</title>
-<link rel="stylesheet" href="css/app.css">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: #0b1120;
+    color: #e8eaf0;
+    font-family: 'Segoe UI', 'Open Sans', Arial, sans-serif;
+    font-size: 20px;
+    -webkit-user-select: none;
+}
+
+#app {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: #0b1120;
+}
+
+/* ---------- HEADER ---------- */
+#header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: #111a30;
+    border-bottom: 2px solid #1c2742;
+    z-index: 10;
+}
+
+#brand {
+    position: absolute;
+    left: 24px; top: 8px;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #ffffff;
+}
+
+.brand-dot {
+    display: inline-block;
+    width: 14px; height: 14px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: #d32f2f;
+    vertical-align: middle;
+}
+
+#headerRight {
+    position: absolute;
+    right: 24px; top: 15px;
+    text-align: right;
+}
+
+#accountLabel {
+    display: inline-block;
+    margin-right: 22px;
+    font-size: 18px;
+    color: #9fb0d0;
+}
+
+#clock {
+    display: inline-block;
+    font-size: 22px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* ---------- SIDEBAR / MENU ---------- */
+#sidebar {
+    position: absolute;
+    top: 62px; left: 0; bottom: 0;
+    width: 260px;
+    background: #0e1526;
+    border-right: 2px solid #1c2742;
+    overflow: hidden;
+    padding-top: 12px;
+}
+
+.menu-item {
+    height: 58px;
+    line-height: 58px;
+    padding: 0 28px;
+    font-size: 23px;
+    color: #aab6d4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-item.focused {
+    background: #d32f2f;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* ---------- MAIN ---------- */
+#main {
+    position: absolute;
+    top: 62px; left: 262px; right: 0; bottom: 0;
+    background: #0b1120;
+}
+
+/* categories bar */
+#cats {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 54px;
+    background: #0f1830;
+    border-bottom: 2px solid #1c2742;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 6px 8px;
+}
+
+.cat-chip {
+    display: inline-block;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 18px;
+    margin-right: 8px;
+    font-size: 19px;
+    color: #aab6d4;
+    background: #182243;
+    border: 2px solid #22305c;
+    border-radius: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 340px;
+    vertical-align: top;
+}
+
+.cat-chip.focused {
+    background: #d32f2f;
+    border-color: #ff6659;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* content */
+#content {
+    position: absolute;
+    top: 56px; left: 0; right: 0; bottom: 0;
+}
+
+#videoCol {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 533px;
+    border-right: 2px solid #141d38;
+}
+
+#videoPanel {
+    position: relative;
+    width: 533px;
+    height: 300px;
+    background: #000000;
+    overflow: hidden;
+}
+
+#videoEl {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #000000;
+}
+
+#videoPlaceholder {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    text-align: center;
+    background: #0b1120;
+    padding-top: 105px;
+}
+
+#vpTitle {
+    font-size: 30px;
+    font-weight: bold;
+    color: #d32f2f;
+    letter-spacing: 2px;
+}
+
+#vpSub {
+    margin-top: 12px;
+    font-size: 18px;
+    color: #7c8bb0;
+}
+
+#videoLoading {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    text-align: center;
+    padding-top: 130px;
+    font-size: 20px;
+    color: #ffffff;
+    background: rgba(0,0,0,0.6);
+    display: none;
+}
+
+#videoInfo {
+    position: absolute;
+    top: 302px; left: 0;
+    width: 533px; height: 86px;
+    background: #0e1526;
+    padding: 10px 14px;
+}
+
+#npTitle {
+    font-size: 19px;
+    font-weight: bold;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#npTime {
+    margin-top: 4px;
+    font-size: 16px;
+    color: #9fb0d0;
+}
+
+#npProgressWrap {
+    margin-top: 8px;
+    height: 6px;
+    background: #22305c;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+#npProgress {
+    height: 6px;
+    width: 0%;
+    background: #d32f2f;
+}
+
+#hints {
+    position: absolute;
+    top: 390px; left: 0;
+    width: 533px; height: 210px;
+    padding: 22px 16px;
+    background: #0b1120;
+    color: #5d6c92;
+    font-size: 16px;
+    line-height: 32px;
+}
+
+#hints span {
+    display: block;
+}
+
+#hints span::before {
+    content: '\2022  ';
+    color: #d32f2f;
+}
+
+/* item list */
+#itemWrap {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    left: 535px;
+}
+
+#itemList {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 0;
+}
+
+.item-row {
+    position: relative;
+    height: 44px;
+    line-height: 44px;
+    padding: 0 14px 0 52px;
+    font-size: 21px;
+    color: #c4cbe0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #121a30;
+}
+
+.item-row.focused {
+    background: #232f57;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.item-index {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    width: 34px;
+    text-align: right;
+    font-size: 16px;
+    color: #6b7aa5;
+    line-height: 44px;
+}
+
+.item-row.focused .item-index {
+    color: #ffb4aa;
+}
+
+/* ---------- TOAST ---------- */
+#toast {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    min-width: 260px;
+    max-width: 600px;
+    padding: 12px 22px;
+    background: rgba(20,27,48,0.95);
+    border: 2px solid #d32f2f;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 19px;
+    text-align: center;
+    display: none;
+    z-index: 50;
+}
+
+/* ---------- LOADING OVERLAY ---------- */
+#loading {
+    position: absolute;
+    top: 0; left: 0;
+    width: 1280px; height: 720px;
+    background: rgba(8,12,24,0.7);
+    z-index: 40;
+    display: none;
+}
+
+#loadingText {
+    position: absolute;
+    top: 50%; left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 26px;
+    color: #ffffff;
+}
+
+</style>
 </head>
 <body>
 <div id="app">
@@ -57,10 +408,975 @@
 
 </div>
 
-<script src="js/config.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/api.js"></script>
-<script src="js/player.js"></script>
-<script src="js/app.js"></script>
+<script>
+var Config = {
+    appTitle: 'Xtream Baba',
+    apiTimeout: 25000,
+    maxItems: 4000,
+    serverPresets: [
+        { server: 'tekno072.xyz', port: '8080' }
+    ],
+    corsProxies: [
+        'https://api.allorigins.win/raw?url=',
+        'https://corsproxy.io/?url='
+    ]
+};
+
+</script>
+<script>
+var Storage = {
+    get: function(key) {
+        try {
+            var data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    set: function(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    remove: function(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {}
+    },
+
+    getAccounts: function() {
+        return this.get('xtream_accounts') || [];
+    },
+
+    saveAccounts: function(accounts) {
+        return this.set('xtream_accounts', accounts);
+    },
+
+    getActiveAccount: function() {
+        return this.get('xtream_active_account');
+    },
+
+    setActiveAccount: function(account) {
+        return this.set('xtream_active_account', account);
+    },
+
+    getFavorites: function() {
+        return this.get('xtream_favorites') || { live: [], movies: [], series: [] };
+    },
+
+    saveFavorites: function(favs) {
+        return this.set('xtream_favorites', favs);
+    }
+};
+
+</script>
+<script>
+function isHttps() {
+    return location.protocol === 'https:';
+}
+
+var Api = {
+    account: null,
+
+    setAccount: function(account) {
+        this.account = account;
+    },
+
+    getApiUrl: function(action) {
+        if (!this.account) return null;
+        var base = 'http://' + this.account.server + ':' + this.account.port +
+            '/player_api.php?username=' + encodeURIComponent(this.account.username) +
+            '&password=' + encodeURIComponent(this.account.password);
+        if (action) base += '&action=' + action;
+        return base;
+    },
+
+    getStreamUrl: function(type, id, ext) {
+        if (!this.account) return null;
+        var base = 'http://' + this.account.server + ':' + this.account.port + '/';
+        if (type === 'live') {
+            return base + 'live/' + this.account.username + '/' + this.account.password + '/' + id + '.m3u8';
+        }
+        if (type === 'movies' || type === 'movie') {
+            return base + 'movie/' + this.account.username + '/' + this.account.password + '/' + id + '.' + (ext || 'mp4');
+        }
+        if (type === 'series') {
+            return base + 'series/' + this.account.username + '/' + this.account.password + '/' + id + '.' + (ext || 'mp4');
+        }
+        return base + 'live/' + this.account.username + '/' + this.account.password + '/' + id + '.m3u8';
+    },
+
+    call: function(action, callback) {
+        var url = this.getApiUrl(action);
+        if (!url) {
+            if (callback) callback(new Error('Hesap bilgisi yok'));
+            return;
+        }
+        this._xhr(url, callback);
+    },
+
+    proxyStream: function(url) {
+        if (!isHttps() || !Config.corsProxies || !Config.corsProxies.length) return null;
+        return Config.corsProxies[0] + encodeURIComponent(url);
+    },
+
+    _xhr: function(url, callback) {
+        var proxies = Config.corsProxies || [];
+        var pi = 0;
+        var self = this;
+
+        function attempt() {
+            var u = url;
+            if (isHttps() && pi < proxies.length) {
+                u = proxies[pi] + encodeURIComponent(url);
+            }
+            var xhr = new XMLHttpRequest();
+            var done = false;
+
+            function finish(err, data) {
+                if (done) return;
+                done = true;
+                if (err && isHttps() && pi < proxies.length) {
+                    pi++;
+                    attempt();
+                    return;
+                }
+                if (callback) callback(err, data);
+            }
+
+            xhr.open('GET', u, true);
+            xhr.timeout = Config.apiTimeout;
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== 4) return;
+                if (xhr.status === 200) {
+                    var data = null;
+                    try {
+                        data = JSON.parse(xhr.responseText);
+                    } catch (e) {
+                        finish(new Error('Gecersiz cevap'));
+                        return;
+                    }
+                    finish(null, data);
+                } else {
+                    finish(new Error('HTTP ' + xhr.status));
+                }
+            };
+            xhr.onerror = function() { finish(new Error('Baglanti hatasi')); };
+            xhr.ontimeout = function() { finish(new Error('Zaman asimi')); };
+            xhr.send();
+        }
+
+        attempt();
+    }
+};
+
+</script>
+<script>
+var VideoPlayer = {
+    el: null,
+    titleEl: null,
+    timeEl: null,
+    progEl: null,
+    loadingEl: null,
+    placeholderEl: null,
+    stream: null,
+    playing: false,
+    _fail: false,
+    _proxied: false,
+
+    init: function() {
+        var self = this;
+        this.el = document.getElementById('videoEl');
+        this.titleEl = document.getElementById('npTitle');
+        this.timeEl = document.getElementById('npTime');
+        this.progEl = document.getElementById('npProgress');
+        this.loadingEl = document.getElementById('videoLoading');
+        this.placeholderEl = document.getElementById('videoPlaceholder');
+
+        this.el.addEventListener('error', function() { self._onError(); });
+        this.el.addEventListener('waiting', function() { self._showLoading(); });
+        this.el.addEventListener('playing', function() { self._hideLoading(); self._clearFail(); });
+        this.el.addEventListener('canplay', function() { self._hideLoading(); });
+        this.el.addEventListener('ended', function() { self.stop(); });
+        this.el.addEventListener('timeupdate', function() { self._tick(); });
+    },
+
+    play: function(stream) {
+        var self = this;
+        this._stopInternal();
+        this.stream = stream;
+        this._fail = false;
+        this._proxied = false;
+
+        this.placeholderEl.style.display = 'none';
+        this.titleEl.textContent = stream.name;
+        this.timeEl.textContent = '00:00';
+        this._showLoading();
+
+        this.el.src = stream.url;
+        this.el.load();
+
+        var p = this.el.play();
+        if (p && p.catch) {
+            p.catch(function() { self._onError(); });
+        }
+        this.playing = true;
+    },
+
+    toggle: function() {
+        if (!this.stream) return;
+        if (this.el.paused) {
+            var p = this.el.play();
+            if (p && p.catch) p.catch(function() {});
+        } else {
+            this.el.pause();
+        }
+        this.playing = !this.el.paused;
+    },
+
+    isPaused: function() {
+        return this.el.paused;
+    },
+
+    seek: function(delta) {
+        if (!this.stream) return;
+        try {
+            var d = this.el.duration;
+            var t = this.el.currentTime + delta;
+            if (isFinite(d) && d > 0) t = Math.max(0, Math.min(t, d - 1));
+            else t = Math.max(0, t);
+            this.el.currentTime = t;
+        } catch (e) {}
+    },
+
+    volume: function(delta) {
+        if (!this.stream) return;
+        var v = this.el.volume + delta;
+        this.el.volume = Math.max(0, Math.min(1, v));
+    },
+
+    stop: function() {
+        this._stopInternal();
+        this.stream = null;
+        this.playing = false;
+        this.titleEl.textContent = 'Yayin secili degil';
+        this.timeEl.textContent = '00:00 / 00:00';
+        this.progEl.style.width = '0%';
+        this.placeholderEl.style.display = '';
+    },
+
+    _stopInternal: function() {
+        try {
+            this.el.pause();
+        } catch (e) {}
+        try {
+            this.el.removeAttribute('src');
+            this.el.load();
+        } catch (e) {}
+        this._hideLoading();
+    },
+
+    _showLoading: function() {
+        this.loadingEl.style.display = 'block';
+    },
+
+    _hideLoading: function() {
+        this.loadingEl.style.display = 'none';
+    },
+
+    _clearFail: function() {
+        this._fail = false;
+    },
+
+    _onError: function() {
+        this._hideLoading();
+        if (this.stream && !this._proxied && isHttps()) {
+            var pu = Api.proxyStream(this.stream.url);
+            if (pu) {
+                this._proxied = true;
+                this._stopInternal();
+                this.el.src = pu;
+                this.el.load();
+                var p = this.el.play();
+                if (p && p.catch) p.catch(function() {});
+                this.playing = true;
+                return;
+            }
+        }
+        if (this._fail) return;
+        this._fail = true;
+        if (this.stream) {
+            UI.toast('Bu yayin bu cihazda oynatilamadi (kod/codec desteklenmiyor olabilir)');
+        }
+        this.stop();
+    },
+
+    _tick: function() {
+        if (!this.stream) return;
+        var t = this.el.currentTime || 0;
+        var d = this.el.duration || 0;
+        if (isFinite(d) && d > 0) {
+            this.timeEl.textContent = fmtTime(t) + ' / ' + fmtTime(d);
+            this.progEl.style.width = Math.round((t / d) * 100) + '%';
+        } else {
+            this.timeEl.textContent = fmtTime(t);
+        }
+    }
+};
+
+</script>
+<script>
+/* Xtream Baba - webOS 2.3.3 (Chrome 34) - ES5 */
+
+var App = {
+    section: 'live',
+    zone: 'menu',
+    menuIndex: 0,
+    catIndex: 0,
+    itemIndex: 0,
+    accountIndex: 0,
+    formIndex: 0,
+    account: null,
+    cats: [],
+    items: [],
+    menuItems: ['Canli TV', 'Filmler', 'Diziler', 'Favoriler', 'Hesaplar', 'Cikis'],
+    favSections: ['Canli TV', 'Filmler', 'Diziler'],
+    favKeys: ['live', 'movies', 'series'],
+    favIndex: 0,
+    accounts: [],
+    cache: null,
+    formEditing: false
+};
+
+var MENU_LIVE = 0, MENU_MOVIES = 1, MENU_SERIES = 2, MENU_FAVS = 3, MENU_ACCOUNTS = 4, MENU_EXIT = 5;
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function fmtTime(s) {
+    s = Math.floor(s || 0);
+    var h = Math.floor(s / 3600);
+    var m = Math.floor((s % 3600) / 60);
+    var sec = s % 60;
+    if (h > 0) return h + ':' + pad(m) + ':' + pad(sec);
+    return m + ':' + pad(sec);
+}
+
+function fmtClock() {
+    var d = new Date();
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function el(id) { return document.getElementById(id); }
+
+/* ---------------- UI helpers ---------------- */
+
+var UI = {
+    toastTimer: null,
+
+    toast: function(msg) {
+        var t = el('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        t.style.marginLeft = -(t.offsetWidth / 2) + 'px';
+        if (this.toastTimer) clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(function() { t.style.display = 'none'; }, 2600);
+    },
+
+    showLoading: function(show) {
+        el('loading').style.display = show ? 'block' : 'none';
+    },
+
+    scrollIntoList: function(listEl, rowEl) {
+        var listTop = listEl.scrollTop;
+        var rowTop = rowEl.offsetTop;
+        var rowBottom = rowTop + rowEl.offsetHeight;
+        var viewH = listEl.clientHeight;
+        if (rowTop < listTop) listEl.scrollTop = rowTop;
+        else if (rowBottom > listTop + viewH) listEl.scrollTop = rowBottom - viewH;
+    }
+};
+
+/* ---------------- Render ---------------- */
+
+function renderMenu() {
+    var menu = el('menu');
+    var html = '';
+    for (var i = 0; i < App.menuItems.length; i++) {
+        html += '<div class="menu-item' + (i === App.menuIndex ? ' focused' : '') + '" data-index="' + i + '">' + App.menuItems[i] + '</div>';
+    }
+    menu.innerHTML = html;
+}
+
+function renderCats() {
+    var c = el('cats');
+    var html = '';
+    for (var i = 0; i < App.cats.length; i++) {
+        html += '<div class="cat-chip' + (i === App.catIndex ? ' focused' : '') + '" data-index="' + i + '">' + escapeHtml(App.cats[i].name) + '</div>';
+    }
+    c.innerHTML = html;
+    if (App.cats.length && App.catIndex >= App.cats.length) App.catIndex = 0;
+}
+
+function renderItems() {
+    var list = el('itemList');
+    var items = App.items;
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+        html += '<div class="item-row' + (i === App.itemIndex ? ' focused' : '') + '" data-index="' + i + '">' +
+            '<span class="item-index">' + (i + 1) + '</span>' +
+            escapeHtml(items[i].name) + '</div>';
+    }
+    list.innerHTML = html;
+}
+
+function escapeHtml(s) {
+    s = String(s === undefined || s === null ? '' : s);
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderAccounts() {
+    var list = el('itemList');
+    var accounts = App.accounts;
+    var html = '';
+    if (!accounts.length) {
+        html += '<div class="item-row' + (App.accountIndex === 0 ? ' focused' : '') + '" data-index="0" style="color:#7c8bb0;">Kayitli hesap yok</div>';
+    }
+    for (var i = 0; i < accounts.length; i++) {
+        var a = accounts[i];
+        var active = App.account && App.account.id === a.id;
+        var label = a.username + ' @ ' + a.server + ':' + a.port;
+        html += '<div class="item-row' + (App.accountIndex === i ? ' focused' : '') + '" data-index="' + i + '">' +
+            '<span class="item-index">' + (i + 1) + '</span>' + escapeHtml(label) +
+            (active ? ' <span style="color:#ffb4aa;">[Aktif]</span>' : '') + '</div>';
+    }
+    html += '<div class="item-row' + (App.accountIndex === accounts.length ? ' focused' : '') + '" data-index="' + accounts.length + '" style="color:#ffb4aa;font-weight:bold;">+ Yeni Hesap Ekle</div>';
+    list.innerHTML = html;
+}
+
+function renderForm() {
+    var list = el('itemList');
+    var labels = ['Sunucu', 'Port', 'Kullanici adi', 'Sifre'];
+    var vals = ['', '8080', '', ''];
+    if (App.formValues) {
+        for (var i = 0; i < 4; i++) {
+            if (App.formValues[i] !== undefined) vals[i] = App.formValues[i];
+        }
+    }
+    App.formValues = vals;
+    var html = '';
+    html += '<div style="padding:10px 14px;font-size:19px;color:#7c8bb0;border-bottom:2px solid #121a30;">Hesap Bilgileri</div>';
+    for (var i = 0; i < 4; i++) {
+        var f = 'form-' + i;
+        var focused = (i === App.formIndex && !App.formEditing) ? ' focused' : '';
+        html += '<div class="item-row' + focused + '" data-index="' + i + '">' +
+            '<span class="item-index">' + (i + 1) + '</span>' + labels[i] + ': ' +
+            (i === 3 ? repeatStar(vals[i].length) : escapeHtml(vals[i])) + '</div>';
+    }
+    var btnFocused = (App.formIndex === 4 && !App.formEditing) ? ' focused' : '';
+    html += '<div class="item-row' + btnFocused + '" data-index="4" style="color:#ffb4aa;font-weight:bold;">Giris Yap</div>';
+    list.innerHTML = html;
+}
+
+function repeatStar(n) {
+    var s = '';
+    for (var i = 0; i < n; i++) s += '*';
+    return s;
+}
+
+function renderAll() {
+    renderMenu();
+    renderCats();
+    renderItems();
+}
+
+/* ---------------- Data loading ---------------- */
+
+function sectionKey(section) {
+    return section;
+}
+
+function buildItemsFromData(sec, data, catId) {
+    var items = [];
+    for (var i = 0; i < data.length && items.length < Config.maxItems; i++) {
+        var it = data[i];
+        if (String(it.category_id) !== String(catId)) continue;
+        if (sec === 'live') {
+            items.push({ id: it.stream_id, category_id: it.category_id, name: it.name, type: 'live', url: Api.getStreamUrl('live', it.stream_id) });
+        } else if (sec === 'movies') {
+            var ext = it.container_extension || 'mp4';
+            items.push({ id: it.stream_id, category_id: it.category_id, name: it.name, type: 'movies', ext: ext, url: Api.getStreamUrl('movies', it.stream_id, ext) });
+        } else {
+            var epId = firstEpisodeId(it);
+            items.push({ id: it.series_id, category_id: it.category_id, name: it.name, type: 'series', epId: epId, url: epId ? Api.getStreamUrl('series', epId, 'mp4') : null });
+        }
+    }
+    return items;
+}
+
+function loadCategories(sec, callback) {
+    var action = sec === 'live' ? 'get_live_categories' : (sec === 'movies' ? 'get_vod_categories' : 'get_series_categories');
+    UI.showLoading(true);
+    Api.call(action, function(err, data) {
+        UI.showLoading(false);
+        if (err || !data) {
+            UI.toast('Kategoriler yuklenemedi');
+            if (callback) callback(err);
+            return;
+        }
+        var cats = [];
+        for (var i = 0; i < data.length; i++) {
+            var c = data[i];
+            cats.push({ id: c.category_id, name: c.category_name });
+        }
+        cats.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        App.cats = cats;
+        App.catIndex = 0;
+        if (callback) callback(null);
+    });
+}
+
+function firstEpisodeId(seriesItem) {
+    if (!seriesItem.episodes) return null;
+    var seasons = seriesItem.episodes;
+    var ids = Object.keys(seasons);
+    for (var s = 0; s < ids.length; s++) {
+        var eps = seasons[ids[s]];
+        if (eps && eps.length) return eps[0].id;
+    }
+    return null;
+}
+
+function loadSection(sec) {
+    App.section = sec;
+    App.items = [];
+    App.itemIndex = 0;
+    App.catIndex = 0;
+    if (sec === 'favs') {
+        App.cats = [{ id: 'fav-live', name: 'Canli TV' }, { id: 'fav-movies', name: 'Filmler' }, { id: 'fav-series', name: 'Diziler' }];
+        App.favIndex = 0;
+        App.catIndex = 0;
+        renderCats();
+        renderFavItems();
+        return;
+    }
+    loadCategories(sec, function() {
+        renderCats();
+        loadCategoryItems();
+    });
+}
+
+function loadCategoryItems() {
+    var sec = App.section;
+    var catId = App.cats.length ? App.cats[App.catIndex].id : null;
+    if (sec === 'favs') {
+        renderFavItems();
+        return;
+    }
+    var action = sec === 'live' ? 'get_live_streams' : (sec === 'movies' ? 'get_vod_streams' : 'get_series');
+    if (App.cache && App.cache[sec]) {
+        App.items = buildItemsFromData(sec, App.cache[sec], catId);
+        App.itemIndex = 0;
+        renderItems();
+        return;
+    }
+    UI.showLoading(true);
+    Api.call(action, function(err, data) {
+        UI.showLoading(false);
+        if (err || !data) {
+            UI.toast('Yayinlar yuklenemedi');
+            return;
+        }
+        App.cache = App.cache || {};
+        App.cache[sec] = data;
+        App.items = buildItemsFromData(sec, data, catId);
+        App.itemIndex = 0;
+        renderItems();
+    });
+}
+
+function renderFavItems() {
+    var favs = Storage.getFavorites();
+    var key = App.favKeys[App.favIndex] || 'live';
+    var arr = favs[key] || [];
+    App.items = [];
+    for (var i = 0; i < arr.length; i++) {
+        var it = arr[i];
+        App.items.push({ id: it.id, name: it.name, type: it.type, ext: it.ext, epId: it.epId, url: it.url });
+    }
+    App.itemIndex = 0;
+    renderItems();
+}
+
+/* ---------------- Favorites ---------------- */
+
+function toggleFavorite() {
+    if (!App.account) return;
+    var item = App.items[App.itemIndex];
+    if (!item || App.section === 'favs') return;
+    var favs = Storage.getFavorites();
+    var key = item.type;
+    var arr = favs[key] || [];
+    var found = -1;
+    for (var i = 0; i < arr.length; i++) {
+        if (String(arr[i].id) === String(item.id)) { found = i; break; }
+    }
+    if (found >= 0) {
+        arr.splice(found, 1);
+        UI.toast('Favorilerden cikarildi');
+    } else {
+        arr.push({ id: item.id, name: item.name, type: item.type, ext: item.ext, epId: item.epId, url: item.url });
+        UI.toast('Favorilere eklendi');
+    }
+    favs[key] = arr;
+    Storage.saveFavorites(favs);
+    if (App.section === 'favs') renderFavItems();
+}
+
+/* ---------------- Playback ---------------- */
+
+function playItem(item) {
+    if (!item || !item.url) {
+        UI.toast('Bu icerik icin yayin adresi yok');
+        return;
+    }
+    VideoPlayer.play(item);
+    App.zone = 'video';
+}
+
+/* ---------------- Accounts ---------------- */
+
+function activateAccount(account) {
+    App.account = account;
+    Api.setAccount(account);
+    Storage.setActiveAccount(account);
+    el('accountLabel').textContent = account.username + ' @ ' + account.server;
+    loadSection('live');
+    App.zone = 'menu';
+    App.menuIndex = MENU_LIVE;
+    renderAll();
+    UI.toast('Giris basarili');
+}
+
+function enterAccounts() {
+    App.prevSection = App.section;
+    App.section = 'accounts';
+    App.accounts = Storage.getAccounts();
+    App.accountIndex = 0;
+    App.zone = 'accounts';
+    el('cats').innerHTML = '';
+    renderAccounts();
+}
+
+function selectAccount() {
+    var accounts = App.accounts;
+    if (App.accountIndex === accounts.length) {
+        startNewAccount();
+        return;
+    }
+    activateAccount(accounts[App.accountIndex]);
+}
+
+function startNewAccount() {
+    App.formValues = ['', '8080', '', ''];
+    App.formIndex = 0;
+    App.formEditing = false;
+    App.zone = 'form';
+    el('cats').innerHTML = '';
+    renderForm();
+}
+
+function submitForm() {
+    var v = App.formValues;
+    var server = (v[0] || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    var port = (v[1] || '').trim();
+    var username = (v[2] || '').trim();
+    var password = (v[3] || '').trim();
+    if (!server || !port || !username || !password) {
+        UI.toast('Tum alanlari doldurun');
+        return;
+    }
+    var account = {
+        id: new Date().getTime(),
+        server: server,
+        port: port,
+        username: username,
+        password: password
+    };
+    UI.showLoading(true);
+    Api.setAccount(account);
+    Api.call('get_live_categories', function(err, data) {
+        UI.showLoading(false);
+        if (err || !data) {
+            UI.toast('Giris basarisiz (sunucu erisilemedi)');
+            return;
+        }
+        var accounts = Storage.getAccounts();
+        accounts.push(account);
+        Storage.saveAccounts(accounts);
+        App.accounts = accounts;
+        activateAccount(account);
+    });
+}
+
+function deleteActiveAccount() {
+    if (!App.account) return;
+    var accounts = Storage.getAccounts();
+    var next = [];
+    for (var i = 0; i < accounts.length; i++) {
+        if (String(accounts[i].id) !== String(App.account.id)) next.push(accounts[i]);
+    }
+    Storage.saveAccounts(next);
+    Storage.remove('xtream_active_account');
+    App.account = null;
+    Api.setAccount(null);
+    el('accountLabel').textContent = 'Hesap yok';
+    enterAccounts();
+    UI.toast('Hesap silindi');
+}
+
+/* ---------------- Key handling ---------------- */
+
+function keyBack() {
+    if (App.zone === 'video') {
+        VideoPlayer.stop();
+        App.zone = 'items';
+        return;
+    }
+    if (App.zone === 'form') {
+        if (App.formEditing) {
+            App.formEditing = false;
+            renderForm();
+            return;
+        }
+        enterAccounts();
+        return;
+    }
+    if (App.zone === 'accounts') {
+        var backSec = App.prevSection === 'accounts' ? 'live' : (App.prevSection || 'live');
+        App.zone = 'menu';
+        App.menuIndex = MENU_ACCOUNTS;
+        loadSection(backSec);
+        return;
+    }
+    if (App.zone === 'cats') {
+        App.zone = 'menu';
+        return;
+    }
+    if (App.zone === 'items') {
+        App.zone = 'cats';
+        return;
+    }
+    if (App.zone === 'menu') {
+        if (App.menuIndex === MENU_EXIT) {
+            try { window.close(); } catch (e) {}
+        } else {
+            try { window.close(); } catch (e) {}
+        }
+    }
+}
+
+function keyEnter() {
+    if (App.formEditing) {
+        App.formEditing = false;
+        renderForm();
+        return;
+    }
+    if (App.zone === 'menu') {
+        switch (App.menuIndex) {
+            case MENU_LIVE: loadSection('live'); App.zone = 'cats'; break;
+            case MENU_MOVIES: loadSection('movies'); App.zone = 'cats'; break;
+            case MENU_SERIES: loadSection('series'); App.zone = 'cats'; break;
+            case MENU_FAVS: loadSection('favs'); App.zone = 'cats'; break;
+            case MENU_ACCOUNTS: enterAccounts(); break;
+            case MENU_EXIT:
+                try { window.close(); } catch (e) {}
+                break;
+        }
+        return;
+    }
+    if (App.zone === 'accounts') {
+        selectAccount();
+        return;
+    }
+    if (App.zone === 'form') {
+        if (App.formIndex === 4) { submitForm(); return; }
+        App.formEditing = true;
+        renderForm();
+        return;
+    }
+    if (App.zone === 'cats') {
+        loadCategoryItems();
+        App.zone = 'items';
+        return;
+    }
+    if (App.zone === 'items') {
+        playItem(App.items[App.itemIndex]);
+        return;
+    }
+    if (App.zone === 'video') {
+        VideoPlayer.toggle();
+        return;
+    }
+}
+
+function move(zone, dir) {
+    var list = el('itemList');
+    if (zone === 'menu') {
+        App.menuIndex = (App.menuIndex + dir + App.menuItems.length) % App.menuItems.length;
+        renderMenu();
+        return;
+    }
+    if (zone === 'cats') {
+        if (!App.cats.length) return;
+        App.catIndex = (App.catIndex + dir + App.cats.length) % App.cats.length;
+        renderCats();
+        if (App.section === 'favs') {
+            App.favIndex = App.catIndex;
+            renderFavItems();
+        }
+        return;
+    }
+    if (zone === 'items') {
+        if (!App.items.length) return;
+        App.itemIndex = (App.itemIndex + dir + App.items.length) % App.items.length;
+        renderItems();
+        var rows = list.children;
+        if (rows[App.itemIndex]) UI.scrollIntoList(list, rows[App.itemIndex]);
+        return;
+    }
+    if (zone === 'accounts') {
+        App.accountIndex = (App.accountIndex + dir + (App.accounts.length + 1)) % (App.accounts.length + 1);
+        renderAccounts();
+        var rows2 = list.children;
+        if (rows2[App.accountIndex]) UI.scrollIntoList(list, rows2[App.accountIndex]);
+        return;
+    }
+    if (zone === 'form') {
+        if (App.formEditing) return;
+        App.formIndex = (App.formIndex + dir + 5) % 5;
+        renderForm();
+        return;
+    }
+}
+
+function keyArrow(key, dir) {
+    if (App.zone === 'video') {
+        if (key === 'up') { VideoPlayer.volume(0.1); return; }
+        if (key === 'down') { VideoPlayer.volume(-0.1); return; }
+        if (key === 'left') { VideoPlayer.seek(-15); return; }
+        if (key === 'right') { VideoPlayer.seek(15); return; }
+        return;
+    }
+    if (key === 'left' || key === 'right') {
+        if (App.zone === 'menu') {
+            if (key === 'right' && App.menuIndex <= MENU_FAVS) { App.zone = 'cats'; renderAll(); }
+            return;
+        }
+        if (App.zone === 'cats') {
+            App.zone = key === 'right' ? 'items' : 'menu';
+            renderAll();
+            return;
+        }
+        if (App.zone === 'items') {
+            if (key === 'left') {
+                App.zone = 'cats';
+                renderAll();
+            }
+            return;
+        }
+        return;
+    }
+    if (key === 'up' || key === 'down') {
+        move(App.zone, key === 'up' ? -1 : 1);
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    var k = e.keyCode;
+    if (App.formEditing && k !== 461 && k !== 10009 && k !== 8) {
+        return;
+    }
+    if (App.formEditing && k === 8) {
+        return;
+    }
+    if (k === 461 || k === 10009 || k === 8) {
+        if (App.formEditing) {
+            App.formEditing = false;
+            renderForm();
+            return;
+        }
+        e.preventDefault();
+        keyBack();
+        return;
+    }
+    if (k === 13) { e.preventDefault(); keyEnter(); return; }
+    if (k === 38) { e.preventDefault(); keyArrow('up'); return; }
+    if (k === 40) { e.preventDefault(); keyArrow('down'); return; }
+    if (k === 37) { e.preventDefault(); keyArrow('left'); return; }
+    if (k === 39) { e.preventDefault(); keyArrow('right'); return; }
+    if (k === 70) { toggleFavorite(); return; }
+});
+
+/* ---------------- Form input capture ---------------- */
+
+function captureFormText(e) {
+    if (App.zone !== 'form' || !App.formEditing) return;
+    var idx = App.formIndex;
+    if (idx >= 4) return;
+    var k = e.keyCode;
+    var val = App.formValues[idx];
+    if (k === 8) {
+        App.formValues[idx] = val.substring(0, val.length - 1);
+        e.preventDefault();
+        renderForm();
+        return;
+    }
+    if (k === 13) { App.formEditing = false; renderForm(); return; }
+    if (k >= 48 && k <= 57) { App.formValues[idx] = val + String.fromCharCode(k); }
+    else if (k >= 65 && k <= 90) { App.formValues[idx] = val + String.fromCharCode(k); }
+    else if (k >= 96 && k <= 105) { App.formValues[idx] = val + String.fromCharCode(k - 48); }
+    else if (k === 46 || k === 64 || k === 95 || k === 45) { App.formValues[idx] = val + String.fromCharCode(k); }
+    else return;
+    e.preventDefault();
+    renderForm();
+}
+
+document.addEventListener('keypress', function(e) {
+    captureFormText(e);
+});
+
+/* ---------------- Clock ---------------- */
+
+setInterval(function() {
+    el('clock').textContent = fmtClock();
+}, 30000);
+
+/* ---------------- Boot ---------------- */
+
+function boot() {
+    VideoPlayer.init();
+    el('clock').textContent = fmtClock();
+
+    var active = Storage.getActiveAccount();
+    if (active) {
+        App.account = active;
+        Api.setAccount(active);
+        el('accountLabel').textContent = active.username + ' @ ' + active.server;
+        App.zone = 'menu';
+        loadSection('live');
+        renderAll();
+    } else {
+        enterAccounts();
+    }
+}
+
+window.addEventListener('load', function() { boot(); });
+
+</script>
 </body>
 </html>
