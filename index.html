@@ -997,10 +997,51 @@
          background: #f44336; 
     }
     .conn-speed {
-         font-size: 9px; color: #445; font-family: monospace; white-space: nowrap; 
+         font-size: 9px; color: #445; font-family: monospace; white-space: nowrap;
     }
     [data-theme="light"] .conn-speed {
-         font-size: 9px; color: #888; font-family: monospace; white-space: nowrap; 
+         font-size: 9px; color: #888; font-family: monospace; white-space: nowrap;
+    }
+    .quality-menu, .speed-menu {
+         position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+         background: rgba(10, 20, 40, 0.95); border: 1px solid rgba(100, 150, 220, 0.3);
+         border-radius: 8px; padding: 16px; min-width: 200px; z-index: 10000;
+         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    [data-theme="light"] .quality-menu, [data-theme="light"] .speed-menu {
+         background: rgba(240, 245, 255, 0.95); border: 1px solid rgba(100, 150, 220, 0.3);
+    }
+    .quality-menu-title, .speed-menu-title {
+         font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 12px; text-align: center;
+    }
+    [data-theme="light"] .quality-menu-title, [data-theme="light"] .speed-menu-title {
+         color: #333;
+    }
+    .quality-menu-item, .speed-menu-item {
+         padding: 10px 12px; cursor: pointer; color: #e0e0e0; border-radius: 4px;
+         margin: 4px 0; transition: background 0.2s;
+    }
+    [data-theme="light"] .quality-menu-item, [data-theme="light"] .speed-menu-item {
+         color: #333;
+    }
+    .quality-menu-item:hover, .speed-menu-item:hover {
+         background: rgba(100, 150, 220, 0.3);
+    }
+    [data-theme="light"] .quality-menu-item:hover, [data-theme="light"] .speed-menu-item:hover {
+         background: rgba(100, 150, 220, 0.2);
+    }
+    .quality-menu-close, .speed-menu-close {
+         padding: 8px 12px; cursor: pointer; color: #aaa; text-align: center;
+         margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    [data-theme="light"] .quality-menu-close, [data-theme="light"] .speed-menu-close {
+         color: #666; border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .quality-menu-close:hover, .speed-menu-close:hover {
+         color: #fff;
+    }
+    [data-theme="light"] .quality-menu-close:hover, [data-theme="light"] .speed-menu-close:hover {
+         color: #333;
     }
     .account-bar {
          display: flex;  margin: 0 auto; max-width: 720px; width: 100%; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); overflow-x: auto; 
@@ -1672,7 +1713,7 @@
             <div class="video-col">
                 <div class="tv-frame">
                         <div class="tv-screen">
-                        <video id="videoPlayer" playsinline webkit-playsinline x-webkit-airplay="allow" controls></video>
+                        <video id="videoPlayer" playsinline webkit-playsinline x-webkit-airplay="allow"></video>
                         <div class="video-placeholder" id="videoPlaceholder">
                             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"><path d="M8 5v14l11-7z"/></svg>
                         </div>
@@ -1703,6 +1744,12 @@
                             </div>
                             <button class="ctrl-btn" id="pipBtn" title="Picture in Picture (P)">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
+                            </button>
+                            <button class="ctrl-btn" id="qualityBtn" title="Kalite (Q)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-2h-2v2zm0-4h2V7h-2v6z"/></svg>
+                            </button>
+                            <button class="ctrl-btn" id="speedBtn" title="Hiz (H)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M13 2.05v2.02c3.95.49 7 3.85 7 7.93 0 4.08-3.05 7.44-7 7.93v2.02c5.05-.5 9-4.76 9-9.95 0-5.19-3.95-9.45-9-9.95zM8.5 13l2.5-1.5v3L8.5 13zm4.5 0l2.5-1.5v3L13 13z"/></svg>
                             </button>
                             <button class="ctrl-btn" id="fullscreenBtn" title="Tam Ekran (F)">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
@@ -3495,6 +3542,9 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
 
     var playbackTimer = null;
 
+    document.getElementById('channelStatus').textContent = 'Yukleniyor...';
+    document.getElementById('videoPlaceholder').style.display = 'flex';
+
     if (isHls && typeof Hls !== 'undefined' && typeof Hls.isSupported === 'function' && Hls.isSupported()) {
         console.log('[PLAY] Using HLS.js');
         hlsInstance = new Hls({
@@ -3525,15 +3575,21 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
                 console.log('[PLAY] HLS play error: ' + e);
             }
         });
-        
+
         hlsInstance.on(Hls.Events.ERROR, function(evt, data) {
-            console.log('[PLAY] HLS error: ' + data.type + ' fatal=' + data.fatal);
+            console.log('[PLAY] HLS error: ' + data.type + ' fatal=' + data.fatal + ' details=' + data.details);
             if (data.fatal) {
                 if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
                 console.log('[PLAY] HLS fatal error, falling back to native');
+                document.getElementById('channelStatus').textContent = 'HLS hatasi, native deneniyor...';
+                setStatus('HLS hatasi: ' + data.details + ', native video deneniyor');
                 video.src = url;
                 video.load();
-                video.play().catch(function(){});
+                video.play().catch(function(e) {
+                    console.log('[PLAY] Native play error after HLS: ' + e);
+                    document.getElementById('channelStatus').textContent = 'Oynatma hatasi';
+                    setStatus('Oynatma hatasi: ' + (e.message || 'Bilinmeyen hata'));
+                });
             }
         });
     } else {
@@ -3542,6 +3598,8 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
         video.load();
         video.play().catch(function(e) {
             console.log('[PLAY] Native play error: ' + e);
+            document.getElementById('channelStatus').textContent = 'Oynatma hatasi';
+            setStatus('Oynatma hatasi: ' + (e.message || 'Desteklenmeyen format'));
         });
     }
 
@@ -3561,6 +3619,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
 
     video.onloadedmetadata = function() {
         console.log('[PLAY] Metadata loaded, duration=' + video.duration + ' videoWidth=' + video.videoWidth);
+        document.getElementById('channelStatus').textContent = 'Hazirlaniyor...';
         updateVideoQuality(video);
         if (!isLive && currentStream) {
             var savedPos = Storage.getWatchPosition(getAccountName(), currentStream.id);
@@ -3748,6 +3807,86 @@ function setupPlayerControls() {
             else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
         }
     });
+
+    document.getElementById('qualityBtn').addEventListener('click', function() {
+        showQualityMenu();
+    });
+
+    document.getElementById('speedBtn').addEventListener('click', function() {
+        showSpeedMenu();
+    });
+
+    function showQualityMenu() {
+        var existing = document.getElementById('qualityMenu');
+        if (existing) existing.remove();
+
+        if (!hlsInstance || !hlsInstance.levels || hlsInstance.levels.length === 0) {
+            setStatus('Kalite secenekleri yok');
+            return;
+        }
+
+        var menu = document.createElement('div');
+        menu.id = 'qualityMenu';
+        menu.innerHTML = '<div class="quality-menu-title">Kalite Secin</div>';
+
+        var autoItem = '<div class="quality-menu-item" data-level="-1">Otomatik</div>';
+        menu.innerHTML += autoItem;
+
+        for (var i = 0; i < hlsInstance.levels.length; i++) {
+            var level = hlsInstance.levels[i];
+            var height = level.height || '?';
+            var width = level.width || '?';
+            var bitrate = level.bitrate || '?';
+            var current = hlsInstance.currentLevel === i ? ' [AKTIF]' : '';
+            menu.innerHTML += '<div class="quality-menu-item" data-level="' + i + '">' + height + 'p (' + (bitrate / 1000).toFixed(1) + ' Mbps)' + current + '</div>';
+        }
+
+        menu.innerHTML += '<div class="quality-menu-close">Kapat</div>';
+        document.body.appendChild(menu);
+
+        menu.addEventListener('click', function(e) {
+            var item = e.target.closest('.quality-menu-item');
+            if (item) {
+                var level = parseInt(item.getAttribute('data-level'), 10);
+                hlsInstance.currentLevel = level;
+                setStatus('Kalite: ' + (level === -1 ? 'Otomatik' : hlsInstance.levels[level].height + 'p'));
+                menu.remove();
+            }
+            if (e.target.classList.contains('quality-menu-close')) menu.remove();
+        });
+    }
+
+    function showSpeedMenu() {
+        var existing = document.getElementById('speedMenu');
+        if (existing) existing.remove();
+
+        var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+        var currentSpeed = video.playbackRate || 1;
+
+        var menu = document.createElement('div');
+        menu.id = 'speedMenu';
+        menu.innerHTML = '<div class="speed-menu-title">Hiz Secin</div>';
+
+        for (var i = 0; i < speeds.length; i++) {
+            var s = speeds[i];
+            var active = s === currentSpeed ? ' [AKTIF]' : '';
+            menu.innerHTML += '<div class="speed-menu-item" data-speed="' + s + '">' + s + 'x' + active + '</div>';
+        }
+
+        menu.innerHTML += '<div class="speed-menu-close">Kapat</div>';
+        document.body.appendChild(menu);
+
+        menu.addEventListener('click', function(e) {
+            var item = e.target.closest('.speed-menu-item');
+            if (item) {
+                var speed = parseFloat(item.getAttribute('data-speed'));
+                video.playbackRate = speed;
+                setStatus('Hiz: ' + speed + 'x');
+                menu.remove();
+            }
+            if (e.target.classList.contains('speed-menu-close')) menu.remove();
+        });
+    }
 
     var progressDragging = false;
 
@@ -4085,16 +4224,9 @@ function loadLogoProxy(img) {
     var originalUrl = container.getAttribute('data-logo-url');
     if (!originalUrl) { img.style.display = 'none'; container.querySelector('.ch-logo-fallback').style.display = 'flex'; return; }
 
-    if (img.getAttribute('data-tried-proxy')) {
-        img.style.display = 'none';
-        var fb = container.querySelector('.ch-logo-fallback');
-        if (fb) fb.style.display = 'flex';
-        return;
-    }
-
-    img.setAttribute('data-tried-proxy', '1');
-    var proxyUrl = window.electronAPI ? '/proxy?url=' + encodeURIComponent(originalUrl) : getLocalProxyUrl(originalUrl);
-    img.src = proxyUrl;
+    img.style.display = 'none';
+    var fb = container.querySelector('.ch-logo-fallback');
+    if (fb) fb.style.display = 'flex';
 }
 
 function updateVideoQuality(video) {
