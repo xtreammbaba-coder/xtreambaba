@@ -39,7 +39,7 @@
         focusEl = el;
         if (!el) return;
         el.classList.add('nav-focus');
-        if (el.tagName === 'INPUT') el.focus();
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON') el.focus();
         try {
             if (el.scrollIntoViewIfNeeded) el.scrollIntoViewIfNeeded(true);
             else el.scrollIntoView(false);

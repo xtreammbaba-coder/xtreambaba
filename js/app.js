@@ -232,7 +232,7 @@
                     '<button class="row-btn row-connect" type="button">Baglan</button>' +
                     '<button class="row-btn row-del" type="button">Sil</button>' +
                 '</div>';
-            item.addEventListener('click', function() { selectServer(i, acc); });
+            item.addEventListener('click', function() { selectServer(i, acc); connectToServer(); });
             var cb = item.querySelector('.row-connect');
             if (cb) cb.addEventListener('click', function(e) { e.stopPropagation(); selectServer(i, acc); connectToServer(); });
             var db = item.querySelector('.row-del');
