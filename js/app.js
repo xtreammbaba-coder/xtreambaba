@@ -167,11 +167,24 @@
         document.getElementById('m3uCancel').addEventListener('click', hideM3uModal);
         document.getElementById('m3uOk').addEventListener('click', importM3u);
 
+        var formInputs = ['accountName', 'serverUrl', 'username', 'password'];
+        for (var f = 0; f < formInputs.length; f++) {
+            document.getElementById(formInputs[f]).addEventListener('input', onFormInput);
+        }
+
         document.addEventListener('click', function(e) {
             var dd = document.getElementById('dropdownMenu');
             var tb = document.getElementById('transferBtn');
             if (!tb.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
         });
+    }
+
+    function onFormInput() {
+        if (!selectedAccountId) return;
+        selectedAccountId = null;
+        var items = document.querySelectorAll('.server-item');
+        items.forEach(function(el) { el.className = 'server-item'; });
+        updateButtons();
     }
 
     function connectToServer() {
@@ -232,6 +245,11 @@
         items.forEach(function(el, i) { el.className = i === index ? 'server-item active' : 'server-item'; });
 
         updateButtons();
+
+        try {
+            var br = document.querySelector('.btn-row');
+            if (br && br.scrollIntoView) br.scrollIntoView(false);
+        } catch(e) {}
     }
 
     function updateButtons() {
@@ -254,19 +272,22 @@
         var port = (url.match(/:(\d+)/) || [,'80'])[1];
 
         Storage.addAccount({ accountName: name, serverUrl: url, server: host, port: port, username: user, password: pass });
+        var accounts = Storage.getAccounts();
         clearForm();
         loadServers();
+        selectServer(accounts.length - 1, accounts[accounts.length - 1]);
     }
 
     function editAccount() {
         if (!selectedAccountId) return;
+        var accId = selectedAccountId;
         var url = document.getElementById('serverUrl').value.trim();
         if (!url) { alert('Sunucu URL giriniz!'); return; }
 
         var host = url.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
         var port = (url.match(/:(\d+)/) || [,'80'])[1];
 
-        Storage.updateAccount(selectedAccountId, {
+        Storage.updateAccount(accId, {
             accountName: document.getElementById('accountName').value.trim(),
             serverUrl: url,
             server: host,
@@ -274,8 +295,12 @@
             username: document.getElementById('username').value.trim(),
             password: document.getElementById('password').value.trim()
         });
+        var accounts = Storage.getAccounts();
         clearForm();
         loadServers();
+        var idx = -1;
+        for (var i = 0; i < accounts.length; i++) { if (accounts[i].id === accId) { idx = i; break; } }
+        if (idx !== -1) selectServer(idx, accounts[idx]);
     }
 
     function deleteAccount() {
