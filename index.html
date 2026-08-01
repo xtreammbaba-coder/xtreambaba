@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Xtream Baba</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div id="brand"><span class="brand-dot"></span>Xtream Baba</div>
+    <div id="headerRight">
+      <span id="accountLabel">Hesap yok</span>
+      <span id="clock">--:--</span>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <div id="menu"></div>
+  </div>
+
+  <div id="main">
+    <div id="cats"></div>
+
+    <div id="content">
+      <div id="videoCol">
+        <div id="videoPanel">
+          <video id="videoEl" preload="auto"></video>
+          <div id="videoPlaceholder">
+            <div id="vpTitle">Xtream Baba</div>
+            <div id="vpSub">Oynatmak icin bir yayin secin</div>
+          </div>
+          <div id="videoLoading">Yukleniyor...</div>
+        </div>
+        <div id="videoInfo">
+          <div id="npTitle">Yayin secili degil</div>
+          <div id="npTime">00:00 / 00:00</div>
+          <div id="npProgressWrap"><div id="npProgress"></div></div>
+        </div>
+        <div id="hints">
+          <span>Enter: Oynat/Duraklat</span>
+          <span>Ust/Alt: Ses</span>
+          <span>Sag/Sol: +-15sn</span>
+          <span>Geri: Dur</span>
+        </div>
+      </div>
+
+      <div id="itemWrap">
+        <div id="itemList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="loading"><div id="loadingText">Yukleniyor...</div></div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/api.js"></script>
+<script src="js/player.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
