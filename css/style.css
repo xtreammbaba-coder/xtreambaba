@@ -334,10 +334,12 @@
          background: #f5f5f5; 
     }
     .server-item.active {
-         background: rgba(33,150,243,0.15); 
+         background: rgba(233,69,96,0.18);
+         box-shadow: inset 3px 0 0 0 #e94560, inset 0 0 0 1px rgba(233,69,96,0.35);
     }
     [data-theme="light"] .server-item.active {
-         background: #e3f2fd; 
+         background: #ffebee;
+         box-shadow: inset 3px 0 0 0 #e94560, inset 0 0 0 1px #ef9a9a;
     }
     .server-dot {
         

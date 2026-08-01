@@ -13,6 +13,13 @@
         loadTheme();
         loadServers();
         bindEvents();
+        selectLastSavedAccount();
+    }
+
+    function selectLastSavedAccount() {
+        var accounts = Storage.getAccounts();
+        if (!accounts || !accounts.length) return;
+        selectServer(accounts.length - 1, accounts[accounts.length - 1]);
     }
 
     // === TRIAL ===
