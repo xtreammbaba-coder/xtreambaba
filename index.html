@@ -1798,6 +1798,40 @@
     
 </div>
 <script>
+if (typeof window.fetch !== 'function') {
+    window.fetch = function(url, opts) {
+        return new Promise(function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            opts = opts || {};
+            xhr.open((opts.method || 'GET').toUpperCase(), url, true);
+            xhr.timeout = opts.timeout || 30000;
+            try {
+                var h = opts.headers || {};
+                for (var k in h) { if (Object.prototype.hasOwnProperty.call(h, k)) xhr.setRequestHeader(k, h[k]); }
+            } catch (e) {}
+            xhr.onload = function() {
+                var t = xhr.responseText || '';
+                resolve({
+                    ok: xhr.status >= 200 && xhr.status < 300,
+                    status: xhr.status,
+                    statusText: xhr.statusText || '',
+                    json: function() { return JSON.parse(t); },
+                    text: function() { return t; },
+                    arrayBuffer: function() {
+                        var b = new ArrayBuffer(t.length);
+                        var v = new Uint8Array(b);
+                        for (var i = 0; i < t.length; i++) v[i] = t.charCodeAt(i) & 0xff;
+                        return b;
+                    }
+                });
+            };
+            xhr.onerror = function() { reject(new Error('Network error')); };
+            xhr.ontimeout = function() { reject(new Error('Timeout')); };
+            xhr.send(opts.body || null);
+        });
+    };
+}
+
 (function () {
     'use strict';
 
