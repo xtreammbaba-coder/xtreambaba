@@ -2873,9 +2873,10 @@ function getDeviceInfo() {
 
 function setupTabs() {
     var tabs = document.querySelectorAll('.tab');
-    tabs.forEach(function(tab) {
+    for (var ti = 0; ti < tabs.length; ti++) {
+        (function(tab) {
         tab.addEventListener('click', function() {
-            tabs.forEach(function(t) { t.classList.remove('active'); });
+            for (var tj = 0; tj < tabs.length; tj++) { tabs[tj].classList.remove('active'); }
             tab.classList.add('active');
             currentMenuType = tab.getAttribute('data-type');
             streamsCache = {};
@@ -2886,7 +2887,8 @@ function setupTabs() {
             showCategories();
             loadCategories(currentMenuType);
         });
-    });
+    })(tabs[ti]);
+    }
 }
 
 function setupBackButton() {
@@ -2946,7 +2948,8 @@ function renderCategories(cats) {
         }
         el.innerHTML = '<span class="cat-dot"></span>' + (cat.category_name || 'Kategori');
         el.addEventListener('click', function() {
-            document.querySelectorAll('.cat-item').forEach(function(i) { i.classList.remove('active'); });
+            var ciEls = document.querySelectorAll('.cat-item');
+            for (var ci = 0; ci < ciEls.length; ci++) { ciEls[ci].classList.remove('active'); }
             el.classList.add('active');
             document.getElementById('favToggleBtn').classList.remove('active');
             loadCategoryContent(cat);
@@ -3062,7 +3065,8 @@ function renderChannels() {
 
         el.addEventListener('click', function(e) {
             if (e.target.closest('.ch-fav')) return;
-            document.querySelectorAll('.ch-item').forEach(function(i) { i.classList.remove('active'); });
+            var chEls = document.querySelectorAll('.ch-item');
+            for (var ci = 0; ci < chEls.length; ci++) { chEls[ci].classList.remove('active'); }
             el.classList.add('active');
             playItem(ch, chType);
         });
