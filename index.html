@@ -2787,7 +2787,8 @@ function hlsPlayWithWebOS(videoEl, url, isLive, onFail) {
 
     if (typeof webOS !== 'undefined' && webOS.service && webOS.service.request) {
         console.log('[HLS] webOS.service.request available');
-        var request = webOS.service.request('luna://com.webos.media', {
+        
+        var request = new webOS.service.request('luna://com.webos.media', {
             method: 'open',
             parameters: {
                 target: url,
@@ -2809,7 +2810,25 @@ function hlsPlayWithWebOS(videoEl, url, isLive, onFail) {
                 playNativeVideo(videoEl, url, isLive, onFail);
             }
         });
-        request.send();
+    } else if (typeof webOS !== 'undefined' && webOS.service && webOS.service.call) {
+        console.log('[HLS] Using webOS.service.call');
+        webOS.service.call('luna://com.webos.media/open', {
+            target: url,
+            option: 'background'
+        }, function(response) {
+            console.log('[HLS] webOS call success: ' + JSON.stringify(response));
+            if (response && response.mediaId) {
+                mediaId = response.mediaId;
+                hlsInstance = { mediaId: mediaId };
+                playMediaId(mediaId, isLive, onFail);
+            } else {
+                console.log('[HLS] webOS call failed: no mediaId');
+                playNativeVideo(videoEl, url, isLive, onFail);
+            }
+        }, function(error) {
+            console.log('[HLS] webOS call error: ' + JSON.stringify(error));
+            playNativeVideo(videoEl, url, isLive, onFail);
+        });
     } else {
         console.log('[HLS] webOS service not available, falling back to native');
         playNativeVideo(videoEl, url, isLive, onFail);
@@ -2818,19 +2837,29 @@ function hlsPlayWithWebOS(videoEl, url, isLive, onFail) {
 
 function playMediaId(mediaId, isLive, onFail) {
     console.log('[HLS] Playing mediaId: ' + mediaId);
-    var request = webOS.service.request('luna://com.webos.media', {
-        method: 'play',
-        parameters: {
+    
+    if (typeof webOS !== 'undefined' && webOS.service && webOS.service.request) {
+        var request = new webOS.service.request('luna://com.webos.media', {
+            method: 'play',
+            parameters: {
+                mediaId: mediaId
+            },
+            onSuccess: function(response) {
+                console.log('[HLS] webOS play success: ' + JSON.stringify(response));
+            },
+            onFailure: function(error) {
+                console.log('[HLS] webOS play error: ' + JSON.stringify(error));
+            }
+        });
+    } else if (typeof webOS !== 'undefined' && webOS.service && webOS.service.call) {
+        webOS.service.call('luna://com.webos.media/play', {
             mediaId: mediaId
-        },
-        onSuccess: function(response) {
-            console.log('[HLS] webOS play success: ' + JSON.stringify(response));
-        },
-        onFailure: function(error) {
-            console.log('[HLS] webOS play error: ' + JSON.stringify(error));
-        }
-    });
-    request.send();
+        }, function(response) {
+            console.log('[HLS] webOS play call success: ' + JSON.stringify(response));
+        }, function(error) {
+            console.log('[HLS] webOS play call error: ' + JSON.stringify(error));
+        });
+    }
 }
 
 function playNativeVideo(videoEl, url, isLive, onFail) {
@@ -3326,10 +3355,11 @@ function playItem(ch, overrideType) {
 
     var isHevc = ch.video_codec && (ch.video_codec.toLowerCase().indexOf('hevc') >= 0 || ch.video_codec.toLowerCase().indexOf('h265') >= 0);
     var isAv1 = ch.video_codec && ch.video_codec.toLowerCase().indexOf('av1') >= 0;
-    var isUnsupported = isHevc || isAv1;
+    var isEac3 = ch.audio_codec && (ch.audio_codec.toLowerCase().indexOf('eac3') >= 0 || ch.audio_codec.toLowerCase().indexOf('ddp') >= 0);
+    var isUnsupported = isHevc || isAv1 || isEac3;
 
     console.log('[CODEC] video_codec=' + (ch.video_codec || 'N/A') + ' audio_codec=' + (ch.audio_codec || 'N/A'));
-    console.log('[CODEC] isHevc=' + isHevc + ' isAv1=' + isAv1 + ' isUnsupported=' + isUnsupported);
+    console.log('[CODEC] isHevc=' + isHevc + ' isAv1=' + isAv1 + ' isEac3=' + isEac3 + ' isUnsupported=' + isUnsupported);
 
     if (isUnsupported) {
         console.log('[CODEC] Unsupported codec detected, browser may not support it');
@@ -3337,9 +3367,14 @@ function playItem(ch, overrideType) {
         var isOldBrowser = userAgent.indexOf('chromium/34') >= 0 || userAgent.indexOf('chrome/34') >= 0;
         
         if (isOldBrowser) {
-            document.getElementById('channelStatus').textContent = 'Desteklenmeyen codec (HEVC/AV1)';
-            setStatus('Desteklenmeyen codec: ' + ch.video_codec.toUpperCase());
-            console.log('[CODEC] Old browser detected, HEVC/AV1 not supported');
+            var unsupportedCodecs = [];
+            if (isHevc) unsupportedCodecs.push('HEVC');
+            if (isAv1) unsupportedCodecs.push('AV1');
+            if (isEac3) unsupportedCodecs.push('EAC3');
+            
+            document.getElementById('channelStatus').textContent = 'Desteklenmeyen codec: ' + unsupportedCodecs.join(', ');
+            setStatus('Desteklenmeyen codec: ' + unsupportedCodecs.join(', '));
+            console.log('[CODEC] Old browser detected, unsupported codecs: ' + unsupportedCodecs.join(', '));
         }
     }
 
@@ -3553,6 +3588,9 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
             console.log('[PLAY] Codec error, trying alternative format...');
             document.getElementById('channelStatus').textContent = 'Alternatif format deneniyor...';
             tryAlternativeFormat(video, rawUrl, isLive, name, attempt);
+        } else if (err && err.code === 4) {
+            console.log('[PLAY] Codec error, cannot be fixed with proxy');
+            document.getElementById('channelStatus').textContent = 'Desteklenmeyen codec (proxy ile cozulemez)';
         } else if (attempt < 1 && !isAndroid()) {
             console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
             document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
