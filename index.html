@@ -2154,11 +2154,33 @@ var Storage = {
 
     var selectedAccountId = null;
 
+    function showErrorBanner(msg) {
+        try {
+            var bar = document.getElementById('appErrorBanner');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.id = 'appErrorBanner';
+                bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#b00020;color:#fff;padding:12px 16px;font-size:13px;font-family:monospace;z-index:99999;white-space:pre-wrap;word-break:break-all;';
+                document.body.appendChild(bar);
+            }
+            bar.textContent = 'HATA: ' + String(msg);
+        } catch (e) {}
+    }
+
+    window.addEventListener('error', function(e) {
+        showErrorBanner((e && e.message) || 'Bilinmeyen hata');
+    });
+
     function init() {
-        loadTheme();
-        loadServers();
-        bindEvents();
-        selectLastSavedAccount();
+        try {
+            loadTheme();
+            loadServers();
+            bindEvents();
+            selectLastSavedAccount();
+        } catch (e) {
+            showErrorBanner('init: ' + (e && e.message ? e.message : e));
+            if (e && e.stack) showErrorBanner('init: ' + e.message + '\n' + e.stack);
+        }
     }
 
     function selectLastSavedAccount() {
@@ -2169,20 +2191,21 @@ var Storage = {
 
     // === TRIAL ===
     function checkTrialAccess() {
-        var deviceId = getDeviceId();
-        var trialData = null;
-        try { trialData = JSON.parse(localStorage.getItem('xtream_trial')); } catch(e) {}
+        try {
+            var deviceId = getDeviceId();
+            var trialData = null;
+            try { trialData = JSON.parse(localStorage.getItem('xtream_trial')); } catch(e) {}
 
-        if (!trialData || trialData.deviceId !== deviceId) {
-            trialData = { deviceId: deviceId, startDate: Date.now(), endDate: Date.now() + 7*24*60*60*1000, activated: false };
-            localStorage.setItem('xtream_trial', JSON.stringify(trialData));
-        }
+            if (!trialData || trialData.deviceId !== deviceId) {
+                trialData = { deviceId: deviceId, startDate: Date.now(), endDate: Date.now() + 7*24*60*60*1000, activated: false };
+                try { localStorage.setItem('xtream_trial', JSON.stringify(trialData)); } catch(e) {}
+            }
 
-        if (trialData.activated) return true;
+            if (trialData.activated) return true;
 
-        var now = Date.now();
-        var secondsLeft = Math.ceil((trialData.endDate - now) / 1000);
-        var daysLeft = Math.ceil((trialData.endDate - now) / (24*60*60*1000));
+            var now = Date.now();
+            var secondsLeft = Math.ceil((trialData.endDate - now) / 1000);
+            var daysLeft = Math.ceil((trialData.endDate - now) / (24*60*60*1000));
 
         if (secondsLeft <= 0) {
             document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0b1120;color:#fff;font-family:Segoe UI,sans-serif">' +
@@ -2224,13 +2247,26 @@ var Storage = {
             }, 500);
         }
         return true;
+        } catch (e) {
+            return true;
+        }
     }
 
     function getDeviceId() {
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        ctx.textBaseline = 'top'; ctx.font = '14px Arial'; ctx.fillText('XtreamBaba', 2, 2);
-        var raw = canvas.toDataURL() + '|' + navigator.userAgent + '|' + screen.width + 'x' + screen.height + '|' + navigator.language + '|' + navigator.platform;
+        var parts = [];
+        try {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.textBaseline = 'top'; ctx.font = '14px Arial'; ctx.fillText('XtreamBaba', 2, 2);
+                parts.push(canvas.toDataURL());
+            }
+        } catch (e) { parts.push('no-canvas'); }
+        parts.push(navigator.userAgent);
+        parts.push(screen.width + 'x' + screen.height);
+        parts.push(navigator.language);
+        parts.push(navigator.platform);
+        var raw = parts.join('|');
         var h = 0;
         for (var i = 0; i < raw.length; i++) { h = ((h << 5) - h) + raw.charCodeAt(i); h |= 0; }
         return 'XB-' + Math.abs(h).toString(36);
@@ -2335,19 +2371,29 @@ var Storage = {
     }
 
     function connectToServer() {
-        if (!selectedAccountId) return;
         var url = document.getElementById('serverUrl').value.trim();
+        if (!url) { showErrorBanner('Once bir sunucu kaydedin veya girin'); return; }
         var host = url.replace(/https?:\/\//, '').split(':')[0].split('/')[0];
         var port = (url.match(/:(\d+)/) || [,'80'])[1];
-        Storage.setActiveAccount({
+        var account = {
             accountName: document.getElementById('accountName').value.trim(),
             serverUrl: url,
             server: host,
             port: port,
             username: document.getElementById('username').value.trim(),
             password: document.getElementById('password').value.trim()
-        });
-        window.showPlayerScreen();
+        };
+        if (!selectedAccountId) {
+            Storage.addAccount(account);
+            var accs = Storage.getAccounts();
+            if (accs.length) account.id = accs[accs.length - 1].id;
+        }
+        Storage.setActiveAccount(account);
+        if (typeof window.showPlayerScreen === 'function') {
+            window.showPlayerScreen();
+        } else {
+            window.showPlayerScreen();
+        }
     }
 
     // === SERVER LIST ===
@@ -4363,7 +4409,10 @@ function escHtml(t) {
     }
 
     function activate() {
-        if (!focusEl) { defaultFocus(); return; }
+        if (!focusEl || !focusEl.parentNode) {
+            defaultFocus();
+            if (!focusEl) return;
+        }
         var t = focusEl;
         if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') { nextInput(); return; }
         if (typeof t.click === 'function') t.click();
