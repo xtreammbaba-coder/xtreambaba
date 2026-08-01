@@ -3468,11 +3468,9 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     clearWatchSaveTimer();
     stopSpeedMonitor();
 
-    var useProxyFirst = !isAndroid() && typeof rawUrl === 'string' && rawUrl.indexOf('http:') === 0;
-    var url = (attempt === 0 && !useProxyFirst) ? rawUrl : getLocalProxyUrl(rawUrl);
+    var url = rawUrl;
     var isHls = url.indexOf('.m3u8') !== -1 || (isLive && url.indexOf('.ts') !== -1);
-    var label = (attempt === 0) ? 'direct' : 'proxy';
-    console.log('[PLAY] attempt=' + label + ' isHls=' + isHls + ' isLive=' + isLive + ' url=' + url.substring(0, 120));
+    console.log('[PLAY] isHls=' + isHls + ' isLive=' + isLive + ' url=' + url.substring(0, 120));
 
     var playbackTimer = null;
 
@@ -3511,16 +3509,10 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
             console.log('[PLAY] HLS error: ' + data.type + ' fatal=' + data.fatal);
             if (data.fatal) {
                 if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-                if (isLive && attempt < 1 && !isAndroid()) {
-                    console.log('[PLAY] HLS fatal error, retrying with proxy...');
-                    document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
-                    playWithFallback(video, rawUrl, isLive, name, attempt + 1);
-                } else {
-                    console.log('[PLAY] HLS fatal error, falling back to native');
-                    video.src = url;
-                    video.load();
-                    video.play().catch(function(){});
-                }
+                console.log('[PLAY] HLS fatal error, falling back to native');
+                video.src = url;
+                video.load();
+                video.play().catch(function(){});
             }
         });
     } else {
@@ -3590,25 +3582,14 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
         setStatus(msg);
         stopSpeedMonitor();
         if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
-        
-        if (attempt < 1 && !isAndroid()) {
-            console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
-            document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
-            playWithFallback(video, rawUrl, isLive, name, attempt + 1);
-        }
     };
 
     playbackTimer = setTimeout(function() {
-        console.log('[PLAY] playback timeout after 15s, attempt=' + label);
+        console.log('[PLAY] playback timeout after 15s');
         document.getElementById('channelStatus').textContent = 'Oynatma zaman asimi';
         setStatus('Oynatma zaman asimi: ' + name);
         stopSpeedMonitor();
         if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
-        if (attempt < 1 && !isAndroid()) {
-            console.log('[PLAY] timeout, retrying with proxy...');
-            document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
-            playWithFallback(video, rawUrl, isLive, name, attempt + 1);
-        }
     }, 15000);
 
     video.setAttribute('x-webkit-airplay', 'allow');
