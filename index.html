@@ -1665,7 +1665,7 @@
             <div class="video-col">
                 <div class="tv-frame">
                         <div class="tv-screen">
-                        <video id="videoPlayer" playsinline webkit-playsinline></video>
+                        <video id="videoPlayer" playsinline webkit-playsinline x-webkit-airplay="allow" controls></video>
                         <div class="subtitle-display" id="subtitleDisplay"></div>
                         <div class="video-placeholder" id="videoPlaceholder">
                             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"><path d="M8 5v14l11-7z"/></svg>
@@ -2755,28 +2755,31 @@ function proxyAllRequests(config) {
 }
 
 function hlsPlay(videoEl, url, isLive, onFail) {
-    if (hlsInstance) { hlsInstance = null; }
+    if (hlsInstance) { 
+        if (hlsInstance.mediaId) {
+            stopWebOSMedia();
+        }
+        hlsInstance = null; 
+    }
 
     var isWebOS = (typeof webOS !== 'undefined' && webOS.platform && webOS.platform.tv);
     console.log('[HLS] isWebOS=' + isWebOS + ' url=' + url.substring(0, 80));
+    console.log('[HLS] webOS object=' + (typeof webOS !== 'undefined' ? 'defined' : 'undefined'));
 
     if (isWebOS && url.indexOf('.m3u8') > 0) {
         hlsPlayWithWebOS(videoEl, url, isLive, onFail);
-        return;
+    } else {
+        console.log('[HLS] Using native video element');
+        playNativeVideo(videoEl, url, isLive, onFail);
     }
-
-    videoEl.src = url;
-    videoEl.load();
-    if (isLive) {
-        videoEl.play().catch(function(){});
-    }
-    return null;
 }
 
 function hlsPlayWithWebOS(videoEl, url, isLive, onFail) {
+    console.log('[HLS] Attempting webOS media service');
     var mediaId = null;
 
     if (typeof webOS !== 'undefined' && webOS.service && webOS.service.request) {
+        console.log('[HLS] webOS.service.request available');
         var request = webOS.service.request('luna://com.webos.media', {
             method: 'open',
             parameters: {
@@ -2784,52 +2787,83 @@ function hlsPlayWithWebOS(videoEl, url, isLive, onFail) {
                 option: 'background'
             },
             onSuccess: function(response) {
+                console.log('[HLS] webOS open success: ' + JSON.stringify(response));
                 if (response && response.mediaId) {
                     mediaId = response.mediaId;
                     hlsInstance = { mediaId: mediaId };
                     playMediaId(mediaId, isLive, onFail);
                 } else {
-                    if (onFail) onFail();
+                    console.log('[HLS] webOS open failed: no mediaId');
+                    playNativeVideo(videoEl, url, isLive, onFail);
                 }
             },
             onFailure: function(error) {
-                console.log('[HLS] webOS media service error');
-                if (onFail) onFail();
+                console.log('[HLS] webOS media service error: ' + JSON.stringify(error));
+                playNativeVideo(videoEl, url, isLive, onFail);
             }
         });
         request.send();
     } else {
-        console.log('[HLS] webOS service not available');
-        if (onFail) onFail();
+        console.log('[HLS] webOS service not available, falling back to native');
+        playNativeVideo(videoEl, url, isLive, onFail);
     }
 }
 
 function playMediaId(mediaId, isLive, onFail) {
+    console.log('[HLS] Playing mediaId: ' + mediaId);
     var request = webOS.service.request('luna://com.webos.media', {
         method: 'play',
         parameters: {
             mediaId: mediaId
         },
         onSuccess: function(response) {
-            console.log('[HLS] webOS media playing');
+            console.log('[HLS] webOS play success: ' + JSON.stringify(response));
         },
         onFailure: function(error) {
-            console.log('[HLS] webOS play error');
-            if (onFail) onFail();
+            console.log('[HLS] webOS play error: ' + JSON.stringify(error));
         }
     });
     request.send();
 }
 
+function playNativeVideo(videoEl, url, isLive, onFail) {
+    console.log('[HLS] Playing with native video element: ' + url.substring(0, 80));
+    
+    try {
+        videoEl.src = url;
+        videoEl.load();
+        
+        videoEl.setAttribute('x-webkit-airplay', 'allow');
+        
+        if (isLive) {
+            var playPromise = videoEl.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(function(error) {
+                    console.log('[HLS] Native play error: ' + error);
+                    if (onFail) onFail();
+                });
+            }
+        }
+    } catch (e) {
+        console.log('[HLS] Native video error: ' + e);
+        if (onFail) onFail();
+    }
+}
+
 function stopWebOSMedia() {
     if (hlsInstance && hlsInstance.mediaId) {
+        console.log('[HLS] Stopping webOS media: ' + hlsInstance.mediaId);
         var request = webOS.service.request('luna://com.webos.media', {
             method: 'close',
             parameters: {
                 mediaId: hlsInstance.mediaId
             },
-            onSuccess: function() {},
-            onFailure: function() {}
+            onSuccess: function() {
+                console.log('[HLS] webOS media stopped');
+            },
+            onFailure: function(error) {
+                console.log('[HLS] webOS stop error: ' + JSON.stringify(error));
+            }
         });
         request.send();
         hlsInstance = null;
