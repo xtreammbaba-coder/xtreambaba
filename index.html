@@ -1913,7 +1913,7 @@
 
     if (typeof window.fetch !== 'function') {
         var CORS_PROXIES = [
-            'https://api.allorigins.win/raw?url=',
+            'https://small-poetry-287c.f3baba06.workers.dev/?url=',
             'https://corsproxy.io/?',
             'https://api.codetabs.com/v1/proxy?quest='
         ];
@@ -2280,24 +2280,26 @@ var Storage = {
     function loadTheme() {
         var saved = localStorage.getItem('xtream_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', saved);
-        updateThemeIcon(saved);
+        window.updateThemeIcons(saved);
         document.getElementById('themeBtn').addEventListener('click', function() {
             var cur = document.documentElement.getAttribute('data-theme');
             var next = cur === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('xtream_theme', next);
-            updateThemeIcon(next);
+            window.updateThemeIcons(next);
         });
     }
 
-    function updateThemeIcon(theme) {
-        var icon = document.getElementById('themeIcon');
-        if (theme === 'light') {
-            icon.innerHTML = '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/><line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/><line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>';
-        } else {
-            icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" fill="none"/>';
+    window.updateThemeIcons = function(theme) {
+        var ids = ['themeIcon', 'pThemeIcon'];
+        var sun = '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/><line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/><line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>';
+        var moon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" fill="none"/>';
+        for (var i = 0; i < ids.length; i++) {
+            var icon = document.getElementById(ids[i]);
+            if (!icon) continue;
+            icon.innerHTML = theme === 'light' ? sun : moon;
         }
-    }
+    };
 
     // === EVENTS ===
     function bindEvents() {
@@ -2517,7 +2519,11 @@ var Storage = {
 
 </script>
 <script>
-var WORKER_URL = '';
+var WORKER_URL = 'https://small-poetry-287c.f3baba06.workers.dev/?url=';
+(function() {
+    var m = window.location.search.match(/[?&]worker=([^&]+)/);
+    if (m && m[1]) WORKER_URL = decodeURIComponent(m[1]);
+})();
 
 function isAndroid() {
     return /Android/i.test(navigator.userAgent);
@@ -2531,10 +2537,18 @@ function needsProxy() {
     return location.protocol === 'https:' && !isAndroid();
 }
 
+function shouldProxyUrl(url) {
+    if (!needsProxy()) return false;
+    if (typeof url !== 'string' || url.indexOf('http:') !== 0) return false;
+    if (WORKER_URL && url.indexOf(WORKER_URL) === 0) return false;
+    if (url.indexOf('api.allorigins.win') !== -1) return false;
+    return true;
+}
+
 function getLocalProxyUrl(url) {
     if (isAndroid()) return url;
     if (window.electronAPI) return location.origin + '/proxy?url=' + encodeURIComponent(url);
-    if (location.protocol === 'https:') return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    if (shouldProxyUrl(url)) return WORKER_URL + encodeURIComponent(url);
     return url;
 }
 
@@ -2552,6 +2566,7 @@ function apiRequestWithProxy(endpoint) {
         if (endpoint) url += '&' + endpoint;
 
         function tryDirect() {
+            if (shouldProxyUrl(url)) { tryLocalProxy(); return; }
             fetch(url).then(function(r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
@@ -2592,8 +2607,8 @@ function getStreamUrl(type, streamId, ext) {
 function proxyAllRequests(config) {
     if (isAndroid()) return;
     config.xhrSetup = function(xhr, url) {
-        if (typeof url === 'string' && url.indexOf('/proxy') === -1 && url.indexOf('blob:') !== 0) {
-            xhr.open('GET', getLocalProxyUrl(url), true);
+        if (typeof url === 'string' && url.indexOf('blob:') !== 0 && shouldProxyUrl(url)) {
+            xhr.open('GET', WORKER_URL + encodeURIComponent(url), true);
         }
     };
 }
@@ -2617,6 +2632,8 @@ function hlsPlay(videoEl, url, isLive, onFail) {
             maxBufferSize: 10 * 1024 * 1024,
             backBufferLength: isLive ? 0 : Infinity
         };
+
+        proxyAllRequests(config);
 
         var hls = null;
         try { hls = new Hls(config); } catch (e) { hls = null; }
@@ -3161,7 +3178,8 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     clearWatchSaveTimer();
     stopSpeedMonitor();
 
-    var url = (attempt === 0) ? rawUrl : getLocalProxyUrl(rawUrl);
+    var useProxyFirst = !isAndroid() && location.protocol === 'https:' && typeof rawUrl === 'string' && rawUrl.indexOf('http:') === 0;
+    var url = (attempt === 0 && !useProxyFirst) ? rawUrl : getLocalProxyUrl(rawUrl);
     var isHls = url.indexOf('.m3u8') !== -1 || (isLive && url.indexOf('.ts') !== -1);
     var label = (attempt === 0) ? 'direct' : 'proxy';
     console.log('[PLAY] attempt=' + label + ' isHls=' + isHls + ' url=' + url.substring(0, 120));
@@ -3674,14 +3692,22 @@ function checkTrialAccess() {
 function setupThemeToggle() {
     var saved = localStorage.getItem('xtream_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
-    updateThemeIcon(saved);
+    if (typeof window.updateThemeIcons === 'function') {
+        window.updateThemeIcons(saved);
+    } else {
+        updateThemeIcon(saved);
+    }
 
     document.getElementById('pThemeBtn').addEventListener('click', function() {
         var current = document.documentElement.getAttribute('data-theme');
         var next = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('xtream_theme', next);
-        updateThemeIcon(next);
+        if (typeof window.updateThemeIcons === 'function') {
+            window.updateThemeIcons(next);
+        } else {
+            updateThemeIcon(next);
+        }
     });
 }
 
@@ -3711,7 +3737,7 @@ function loadLogoProxy(img) {
     }
 
     img.setAttribute('data-tried-proxy', '1');
-    var proxyUrl = '/proxy?url=' + encodeURIComponent(originalUrl);
+    var proxyUrl = window.electronAPI ? '/proxy?url=' + encodeURIComponent(originalUrl) : getLocalProxyUrl(originalUrl);
     img.src = proxyUrl;
 }
 
