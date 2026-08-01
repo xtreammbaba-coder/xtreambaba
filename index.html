@@ -824,6 +824,12 @@
         left: 0;
         width: 100%; height: 100%; object-fit: contain; background: #111; 
     }
+    #videoPlayer:fullscreen {
+        width: 100%; height: 100%; object-fit: cover; 
+    }
+    #videoPlayer:-webkit-full-screen {
+        width: 100%; height: 100%; object-fit: cover; 
+    }
     .video-placeholder {
          position: absolute; top:0;left:0;right:0;bottom:0; display: flex; align-items: center; justify-content: center; pointer-events: none; 
     }
@@ -1667,7 +1673,6 @@
                 <div class="tv-frame">
                         <div class="tv-screen">
                         <video id="videoPlayer" playsinline webkit-playsinline x-webkit-airplay="allow" controls></video>
-                        <div class="subtitle-display" id="subtitleDisplay"></div>
                         <div class="video-placeholder" id="videoPlaceholder">
                             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"><path d="M8 5v14l11-7z"/></svg>
                         </div>
@@ -1698,13 +1703,6 @@
                             </div>
                             <button class="ctrl-btn" id="pipBtn" title="Picture in Picture (P)">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
-                            </button>
-                            <button class="ctrl-btn" id="subBtn" title="Altyazi Yukle (S)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8z"/></svg>
-                            </button>
-                            <input type="file" id="subFileInput" accept=".srt,.vtt,.ass,.ssa" style="display:none">
-                            <button class="ctrl-btn" id="subOffBtn" title="Altyaziyi Kapat" style="display:none">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .5-.5 1-1 1H7c-.5 0-1-.5-1-1v-4c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v1zm7-1h-1.5v.5h-2v-3h2V10H17v4c0 .5-.5 1-1 1h-3c-.5 0-1-.5-1-1v-1h1.5v.5h2v-3h-2V9H16V8c0-.5.5-1 1-1h3c.5 0 1 .5 1 1v4z"/></svg>
                             </button>
                             <button class="ctrl-btn" id="fullscreenBtn" title="Tam Ekran (F)">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
@@ -3001,7 +2999,6 @@ window.initPlayer = function() {
     setupThemeToggle();
     setupPiP();
     setupAutoReconnect();
-    setupSubtitles();
     loadCategories('live');
     startClock();
     checkForUpdate();
@@ -3718,13 +3715,13 @@ function setupPlayerControls() {
     });
 
     document.getElementById('fullscreenBtn').addEventListener('click', function() {
-        var el = document.querySelector('.tv-screen');
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
-        } else if (el.requestFullscreen) {
-            el.requestFullscreen();
-        } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
+        var video = document.getElementById('videoPlayer');
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        } else {
+            if (video.requestFullscreen) video.requestFullscreen();
+            else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
         }
     });
 
@@ -4324,297 +4321,7 @@ function setupPiP() {
     }
 }
 
-// === SUBTITLES ===
-var subtitleData = [];
-var subtitleVisible = true;
-var currentSubIndex = -1;
-var subtitleSearchTimer = null;
-
-function setupSubtitles() {
-    var fileInput = document.getElementById('subFileInput');
-    var subBtn = document.getElementById('subBtn');
-    var subOffBtn = document.getElementById('subOffBtn');
-    var video = document.getElementById('videoPlayer');
-    var display = document.getElementById('subtitleDisplay');
-
-    if (!fileInput || !subBtn) return;
-
-    subBtn.addEventListener('click', function() {
-        if (subtitleData.length > 0) {
-            subtitleVisible = !subtitleVisible;
-            if (!subtitleVisible) display.innerHTML = '';
-            subBtn.classList.toggle('active', subtitleVisible);
-            setStatus(subtitleVisible ? 'Altyazi acildi' : 'Altyazi kapatildi');
-        } else {
-            showSubtitleMenu();
-        }
-    });
-
-    function showSubtitleMenu() {
-        var existing = document.getElementById('subMenu');
-        if (existing) existing.remove();
-        var menu = document.createElement('div');
-        menu.id = 'subMenu';
-        menu.innerHTML =
-            '<div class="sub-picker-title">Altyazi</div>' +
-            '<div class="sub-picker-item" data-act="search">Internetten ara</div>' +
-            '<div class="sub-picker-item" data-act="file">Dosyadan yukle</div>' +
-            '<div class="sub-picker-close">Kapat</div>';
-        document.body.appendChild(menu);
-        menu.addEventListener('click', function(e) {
-            var item = e.target.closest('.sub-picker-item');
-            if (item) {
-                menu.remove();
-                if (item.getAttribute('data-act') === 'file') {
-                    fileInput.click();
-                } else {
-                    var name = currentStream ? currentStream.name : '';
-                    if (name) {
-                        searchSubtitles(name);
-                    } else {
-                        setStatus('Once bir yayin secin');
-                    }
-                }
-                return;
-            }
-            if (e.target.classList.contains('sub-picker-close')) menu.remove();
-        });
-    }
-
-    fileInput.addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-            var text = ev.target.result;
-            var ext = file.name.split('.').pop().toLowerCase();
-            subtitleData = parseSRT(text);
-            subtitleVisible = true;
-            currentSubIndex = -1;
-            subOffBtn.style.display = '';
-            subBtn.classList.add('active');
-            setStatus('Altyazi yuklendi: ' + file.name + ' (' + subtitleData.length + ' satir)');
-        };
-        reader.readAsText(file);
-        fileInput.value = '';
-    });
-
-    subOffBtn.addEventListener('click', function() {
-        clearSubtitles();
-    });
-
-    video.addEventListener('timeupdate', function() {
-        if (!subtitleVisible || subtitleData.length === 0) return;
-        var t = video.currentTime;
-        var found = -1;
-        for (var i = 0; i < subtitleData.length; i++) {
-            if (t >= subtitleData[i].start && t <= subtitleData[i].end) {
-                found = i;
-                break;
-            }
-        }
-        if (found !== currentSubIndex) {
-            currentSubIndex = found;
-            if (found >= 0) {
-                display.innerHTML = '<div class="sub-line">' + escHtml(subtitleData[found].text) + '</div>';
-            } else {
-                display.innerHTML = '';
-            }
-        }
-    });
-}
-
-function searchSubtitles(movieName, onDone) {
-    if (!movieName) return;
-    clearTimeout(subtitleSearchTimer);
-    setStatus('Altyazi araniyor: ' + movieName);
-    var langs = ['tur', 'eng'];
-    var allResults = [];
-    var pending = langs.length;
-    var baseUrl = isAndroid()
-        ? 'https://rest.opensubtitles.org/search/query-' + encodeURIComponent(movieName) + '/sublanguageid-'
-        : '/api/subtitles/search?q=' + encodeURIComponent(movieName) + '&lang=';
-
-    function finish() {
-        if (allResults.length > 0) {
-            showSubtitlePicker(allResults, movieName);
-        } else {
-            setStatus('Altyazi bulunamadi');
-        }
-        if (onDone) onDone({ results: allResults });
-    }
-
-    langs.forEach(function(lang) {
-        var reqUrl = baseUrl + lang;
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', reqUrl, true);
-        xhr.timeout = 10000;
-        if (isAndroid()) {
-            xhr.setRequestHeader('User-Agent', 'TemporaryUserAgent');
-        }
-        xhr.onload = function() {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    var arr = Array.isArray(data) ? data : (data.results || []);
-                    var limit = Math.min(arr.length, 6);
-                    for (var i = 0; i < limit; i++) {
-                        var s = arr[i];
-                        allResults.push({
-                            id: s.IDSubtitleFile || s.id || '',
-                            name: s.SubFileName || s.name || '',
-                            lang: s.LanguageName || s.lang || '',
-                            format: s.SubFormat || s.format || 'srt',
-                            download: s.SubDownloadLink || s.download || '',
-                            zipDownload: s.ZipDownloadLink || s.zipDownload || '',
-                            rating: s.SubRating || s.rating || '0'
-                        });
-                    }
-                } catch (e) {}
-            }
-        };
-        xhr.onerror = function() {};
-        xhr.ontimeout = function() {};
-        xhr.send(null);
-    });
-}
-
-function showSubtitlePicker(subs, movieName) {
-    var existing = document.getElementById('subPicker');
-    if (existing) existing.remove();
-
-    var picker = document.createElement('div');
-    picker.id = 'subPicker';
-    var header = '<div class="sub-picker-title">Altyazi secin</div>';
-    var items = '';
-    subs.slice(0, 8).forEach(function(s, idx) {
-        var star = parseFloat(s.rating) > 0 ? ' <span class="sub-picker-rating">' + s.rating + '</span>' : '';
-        var langBadge = s.lang ? ' <span class="sub-picker-lang">' + escHtml(s.lang) + '</span>' : '';
-        items += '<div class="sub-picker-item" data-idx="' + idx + '">' + escHtml(s.name) + langBadge + star + '</div>';
-    });
-    items += '<div class="sub-picker-close">Kapat</div>';
-    picker.innerHTML = header + items;
-    document.body.appendChild(picker);
-
-    picker.addEventListener('click', function(e) {
-        var item = e.target.closest('.sub-picker-item');
-        if (item) {
-            var s = subs[parseInt(item.getAttribute('data-idx'), 10)];
-            picker.remove();
-            loadSubtitleFromUrl(s.download || s.zipDownload, s.name, function() {
-                setStatus('Altyazi yuklendi: ' + s.name + ' (' + s.lang + ')');
-                document.getElementById('subBtn').classList.add('active');
-                document.getElementById('subOffBtn').style.display = '';
-            });
-            return;
-        }
-        if (e.target.classList.contains('sub-picker-close')) picker.remove();
-    });
-}
-
-function loadSubtitleFromUrl(url, name, onDone) {
-    if (!url) return;
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.timeout = 15000;
-    xhr.responseType = 'text';
-    xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-            var text = xhr.responseText;
-            if (text.indexOf('WEBVTT') !== -1) {
-                subtitleData = parseVTT(text);
-            } else {
-                subtitleData = parseSRT(text);
-            }
-            subtitleVisible = true;
-            currentSubIndex = -1;
-            if (onDone) onDone();
-        }
-    };
-    xhr.onerror = function() { setStatus('Altyazi yuklenemedi'); };
-    xhr.ontimeout = function() { setStatus('Altyazi yuklenemedi'); };
-    xhr.send(null);
-}
-
-function clearSubtitles() {
-    subtitleData = [];
-    currentSubIndex = -1;
-    subtitleVisible = true;
-    var disp = document.getElementById('subtitleDisplay');
-    if (disp) disp.innerHTML = '';
-    var off = document.getElementById('subOffBtn');
-    if (off) off.style.display = 'none';
-    var btn = document.getElementById('subBtn');
-    if (btn) btn.classList.remove('active');
-}
-
-function parseSRT(text) {
-    var subs = [];
-    var blocks = text.replace(/\r\n/g, '\n').split('\n\n');
-    for (var i = 0; i < blocks.length; i++) {
-        var lines = blocks[i].trim().split('\n');
-        if (lines.length < 2) continue;
-        var timeLine = '';
-        var textLines = [];
-        for (var j = 0; j < lines.length; j++) {
-            if (lines[j].indexOf('-->') !== -1) { timeLine = lines[j]; }
-            else if (!isNaN(parseInt(lines[j])) && lines[j].indexOf('-->') === -1) { continue; }
-            else { textLines.push(lines[j]); }
-        }
-        if (!timeLine || textLines.length === 0) continue;
-        var times = timeLine.split('-->');
-        if (times.length !== 2) continue;
-        var start = parseTime(times[0].trim());
-        var end = parseTime(times[1].trim());
-        if (start >= 0 && end >= 0) {
-            subs.push({ start: start, end: end, text: textLines.join('\n') });
-        }
-    }
-    return subs;
-}
-
-function parseVTT(text) {
-    var lines = text.replace(/\r\n/g, '\n').split('\n');
-    var subs = [];
-    var i = 0;
-    while (i < lines.length) {
-        if (lines[i].indexOf('-->') !== -1) {
-            var times = lines[i].split('-->');
-            if (times.length === 2) {
-                var start = parseTime(times[0].trim());
-                var end = parseTime(times[1].trim());
-                var textLines = [];
-                i++;
-                while (i < lines.length && lines[i].trim() !== '') {
-                    textLines.push(lines[i]);
-                    i++;
-                }
-                if (start >= 0 && end >= 0 && textLines.length > 0) {
-                    subs.push({ start: start, end: end, text: textLines.join('\n') });
-                }
-            }
-        }
-        i++;
-    }
-    return subs;
-}
-
-function parseTime(str) {
-    str = str.replace(',', '.');
-    var m = str.match(/(\d+):(\d+):(\d+)[\.\,](\d+)/);
-    if (m) {
-        return parseInt(m[1]) * 3600 + parseInt(m[2]) * 60 + parseInt(m[3]) + parseInt(m[4]) / Math.pow(10, m[4].length);
-    }
-    var m2 = str.match(/(\d+):(\d+)[\.\,](\d+)/);
-    if (m2) {
-        return parseInt(m2[1]) * 60 + parseInt(m2[2]) + parseInt(m2[3]) / Math.pow(10, m2[3].length);
-    }
-    return -1;
-}
-
-function escHtml(t) {
-    return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
-}
+// === SUBTITLES DISABLED ===
 
 </script>
 <script>
@@ -4624,7 +4331,7 @@ function escHtml(t) {
     var remoteMode = false;
     var focusEl = null;
 
-    var NAV_SELECTOR = 'button, input, textarea, .server-item, .cat-item, .ch-item, .tab, .back-btn, .search-clear, .dropdown-item, .modal-btn, .modal-close, .sub-picker-item, .sub-picker-close, .ch-fav';
+    var NAV_SELECTOR = 'button, input, textarea, .server-item, .cat-item, .ch-item, .tab, .back-btn, .search-clear, .dropdown-item, .modal-btn, .modal-close, .ch-fav';
 
     function isVisible(el) {
         if (!el || el.nodeType !== 1) return false;
