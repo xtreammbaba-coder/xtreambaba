@@ -2828,6 +2828,46 @@ function playMediaId(mediaId, isLive, onFail) {
 
 function playNativeVideo(videoEl, url, isLive, onFail) {
     console.log('[HLS] Playing with native video element: ' + url.substring(0, 80));
+    console.log('[HLS] Video format: ' + (url.indexOf('.m3u8') > 0 ? 'HLS' : url.indexOf('.mp4') > 0 ? 'MP4' : 'Unknown'));
+    
+    var errorHandled = false;
+    
+    function handleError(e) {
+        if (errorHandled) return;
+        errorHandled = true;
+        
+        console.log('[HLS] Video error: ' + e.type);
+        console.log('[HLS] Error code: ' + (videoEl.error ? videoEl.error.code : 'N/A'));
+        console.log('[HLS] Error message: ' + (videoEl.error ? videoEl.error.message : 'N/A'));
+        
+        videoEl.removeEventListener('error', handleError);
+        videoEl.removeEventListener('stalled', handleError);
+        
+        if (onFail) onFail();
+    }
+    
+    videoEl.addEventListener('error', handleError);
+    videoEl.addEventListener('stalled', function() {
+        console.log('[HLS] Video stalled, trying to recover');
+        setTimeout(function() {
+            if (videoEl.paused) {
+                videoEl.play().catch(function(){});
+            }
+        }, 1000);
+    });
+    
+    videoEl.addEventListener('waiting', function() {
+        console.log('[HLS] Video waiting for data');
+    });
+    
+    videoEl.addEventListener('playing', function() {
+        console.log('[HLS] Video started playing');
+        errorHandled = true;
+    });
+    
+    videoEl.addEventListener('canplay', function() {
+        console.log('[HLS] Video can play');
+    });
     
     try {
         videoEl.src = url;
@@ -2835,18 +2875,24 @@ function playNativeVideo(videoEl, url, isLive, onFail) {
         
         videoEl.setAttribute('x-webkit-airplay', 'allow');
         
-        if (isLive) {
-            var playPromise = videoEl.play();
-            if (playPromise && typeof playPromise.catch === 'function') {
-                playPromise.catch(function(error) {
-                    console.log('[HLS] Native play error: ' + error);
-                    if (onFail) onFail();
-                });
-            }
+        var playPromise = videoEl.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(function(error) {
+                console.log('[HLS] Native play promise error: ' + error);
+                if (!errorHandled) handleError({type: 'play_error'});
+            });
         }
+        
+        setTimeout(function() {
+            if (!errorHandled && videoEl.readyState === 0) {
+                console.log('[HLS] Video not ready after timeout');
+                handleError({type: 'timeout'});
+            }
+        }, 10000);
+        
     } catch (e) {
-        console.log('[HLS] Native video error: ' + e);
-        if (onFail) onFail();
+        console.log('[HLS] Native video exception: ' + e);
+        if (!errorHandled) handleError({type: 'exception'});
     }
 }
 
@@ -3371,7 +3417,13 @@ function playWithFallback(video, rawUrl, isLive, name, attempt) {
 }
 
 function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
-    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+    if (hlsInstance) { 
+        if (hlsInstance.mediaId) {
+            stopWebOSMedia();
+        }
+        hlsInstance.destroy(); 
+        hlsInstance = null; 
+    }
     video.pause();
     video.removeAttribute('src');
     video._resumeAttempted = false;
@@ -3382,9 +3434,23 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     var url = (attempt === 0 && !useProxyFirst) ? rawUrl : getLocalProxyUrl(rawUrl);
     var isHls = url.indexOf('.m3u8') !== -1 || (isLive && url.indexOf('.ts') !== -1);
     var label = (attempt === 0) ? 'direct' : 'proxy';
-    console.log('[PLAY] attempt=' + label + ' isHls=' + isHls + ' url=' + url.substring(0, 120));
+    console.log('[PLAY] attempt=' + label + ' isHls=' + isHls + ' isLive=' + isLive + ' url=' + url.substring(0, 120));
 
     var playbackTimer = null;
+    var isWebOS = (typeof webOS !== 'undefined' && webOS.platform && webOS.platform.tv);
+    
+    console.log('[PLAY] isWebOS=' + isWebOS + ' userAgent=' + navigator.userAgent.substring(0, 50));
+
+    if (isWebOS && isHls) {
+        console.log('[PLAY] Using webOS media service for HLS');
+        hlsPlay(video, url, isLive, function() {
+            console.log('[PLAY] webOS media service failed, falling back to native');
+            playNativeVideo(video, url, isLive, function() {
+                handlePlaybackError(video, rawUrl, isLive, name, attempt, label, playbackTimer);
+            });
+        });
+        return;
+    }
 
     video.onplaying = function() {
         if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
@@ -3401,6 +3467,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     };
 
     video.onloadedmetadata = function() {
+        console.log('[PLAY] Metadata loaded, duration=' + video.duration + ' videoWidth=' + video.videoWidth);
         updateVideoQuality(video);
         if (!isLive && currentStream) {
             var savedPos = Storage.getWatchPosition(getAccountName(), currentStream.id);
@@ -3410,7 +3477,9 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
                 setStatus('Kaldigi yerden oynatiliyor: ' + name);
             }
         }
-        video.play().catch(function(){});
+        video.play().catch(function(e) {
+            console.log('[PLAY] Play error after metadata: ' + e);
+        });
     };
 
     video.onresize = function() {
@@ -3418,6 +3487,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     };
 
     video.oncanplay = function() {
+        console.log('[PLAY] Can play event');
         if (!isLive && currentStream && video._resumeAttempted !== true) {
             video._resumeAttempted = true;
             var savedPos = Storage.getWatchPosition(getAccountName(), currentStream.id);
@@ -3436,13 +3506,19 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
             if (err.code === 4) msg = 'Desteklenmeyen format (kod: ' + (video.src || '').substring(0, 60) + ')';
             else if (err.code === 2) msg = 'Ag hatasi';
             else if (err.code === 1) msg = 'Iptal edildi';
+            else if (err.code === 3) msg = 'Decode hatasi';
         }
         console.log('[VIDEO] error code=' + (err ? err.code : 'none') + ' msg=' + msg + ' url=' + (video.src || '').substring(0, 120));
         document.getElementById('channelStatus').textContent = msg;
         setStatus(msg);
         stopSpeedMonitor();
         if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
-        if (attempt < 1 && !isAndroid()) {
+        
+        if (err && err.code === 4 && !isHls && attempt < 2) {
+            console.log('[PLAY] Codec error, trying alternative format...');
+            document.getElementById('channelStatus').textContent = 'Alternatif format deneniyor...';
+            tryAlternativeFormat(video, rawUrl, isLive, name, attempt);
+        } else if (attempt < 1 && !isAndroid()) {
             console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
             document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
             playWithFallback(video, rawUrl, isLive, name, attempt + 1);
@@ -3461,6 +3537,61 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
             playWithFallback(video, rawUrl, isLive, name, attempt + 1);
         }
     }, 15000);
+
+    video.src = url;
+    video.load();
+    video.setAttribute('x-webkit-airplay', 'allow');
+    
+    var playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function(e) {
+            console.log('[PLAY] Initial play error: ' + e);
+        });
+    }
+}
+
+function tryAlternativeFormat(video, rawUrl, isLive, name, attempt) {
+    console.log('[PLAY] Trying alternative format for: ' + rawUrl.substring(0, 80));
+    
+    var altUrl = rawUrl;
+    if (rawUrl.indexOf('.mp4') > 0) {
+        altUrl = rawUrl.replace('.mp4', '.mkv');
+        console.log('[PLAY] Trying MKV format');
+    } else if (rawUrl.indexOf('.mkv') > 0) {
+        altUrl = rawUrl.replace('.mkv', '.mp4');
+        console.log('[PLAY] Trying MP4 format');
+    }
+    
+    var video = document.getElementById('videoPlayer');
+    video.src = altUrl;
+    video.load();
+    
+    video.onerror = function() {
+        console.log('[PLAY] Alternative format also failed, trying proxy...');
+        playWithFallback(video, rawUrl, isLive, name, attempt + 1);
+    };
+    
+    video.onplaying = function() {
+        console.log('[PLAY] Alternative format working!');
+        document.getElementById('channelStatus').textContent = 'Oynatiliyor';
+    };
+    
+    video.play().catch(function(){});
+}
+
+function handlePlaybackError(video, rawUrl, isLive, name, attempt, label, playbackTimer) {
+    var msg = 'Oynatma hatasi';
+    console.log('[PLAY] Fallback playback failed');
+    document.getElementById('channelStatus').textContent = msg;
+    setStatus(msg);
+    stopSpeedMonitor();
+    if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
+    if (attempt < 1 && !isAndroid()) {
+        console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
+        document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
+        playWithFallback(video, rawUrl, isLive, name, attempt + 1);
+    }
+}
 
     if (isHls) {
         hlsPlay(video, url, isLive, function() {
