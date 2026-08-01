@@ -3239,7 +3239,7 @@ function playWithFallback(video, rawUrl, isLive, name, attempt) {
 }
 
 function playWithFallback(video, rawUrl, isLive, name, attempt) {
-    stopNativeVod().then(function() {
+    stopNativeVod(function() {
         _doPlayWithFallback(video, rawUrl, isLive, name, attempt);
     });
 }
