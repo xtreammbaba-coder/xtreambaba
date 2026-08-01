@@ -2763,11 +2763,18 @@ function hlsPlay(videoEl, url, isLive, onFail) {
     }
 
     var isWebOS = (typeof webOS !== 'undefined' && webOS.platform && webOS.platform.tv);
-    console.log('[HLS] isWebOS=' + isWebOS + ' url=' + url.substring(0, 80));
+    var userAgent = navigator.userAgent.toLowerCase();
+    var isOldBrowser = userAgent.indexOf('chromium/34') >= 0 || userAgent.indexOf('chrome/34') >= 0;
+    
+    console.log('[HLS] isWebOS=' + isWebOS + ' isOldBrowser=' + isOldBrowser + ' url=' + url.substring(0, 80));
     console.log('[HLS] webOS object=' + (typeof webOS !== 'undefined' ? 'defined' : 'undefined'));
 
     if (isWebOS && url.indexOf('.m3u8') > 0) {
+        console.log('[HLS] Using webOS media service');
         hlsPlayWithWebOS(videoEl, url, isLive, onFail);
+    } else if (isOldBrowser && url.indexOf('.m3u8') > 0) {
+        console.log('[HLS] Old browser cannot play HLS natively');
+        if (onFail) onFail();
     } else {
         console.log('[HLS] Using native video element');
         playNativeVideo(videoEl, url, isLive, onFail);
@@ -3317,6 +3324,25 @@ function playItem(ch, overrideType) {
     var rating = ch.rating ? ' | ' + ch.rating + '/10' : '';
     document.getElementById('np-codec-text').textContent = codecParts.join(' | ') + rating;
 
+    var isHevc = ch.video_codec && (ch.video_codec.toLowerCase().indexOf('hevc') >= 0 || ch.video_codec.toLowerCase().indexOf('h265') >= 0);
+    var isAv1 = ch.video_codec && ch.video_codec.toLowerCase().indexOf('av1') >= 0;
+    var isUnsupported = isHevc || isAv1;
+
+    console.log('[CODEC] video_codec=' + (ch.video_codec || 'N/A') + ' audio_codec=' + (ch.audio_codec || 'N/A'));
+    console.log('[CODEC] isHevc=' + isHevc + ' isAv1=' + isAv1 + ' isUnsupported=' + isUnsupported);
+
+    if (isUnsupported) {
+        console.log('[CODEC] Unsupported codec detected, browser may not support it');
+        var userAgent = navigator.userAgent.toLowerCase();
+        var isOldBrowser = userAgent.indexOf('chromium/34') >= 0 || userAgent.indexOf('chrome/34') >= 0;
+        
+        if (isOldBrowser) {
+            document.getElementById('channelStatus').textContent = 'Desteklenmeyen codec (HEVC/AV1)';
+            setStatus('Desteklenmeyen codec: ' + ch.video_codec.toUpperCase());
+            console.log('[CODEC] Old browser detected, HEVC/AV1 not supported');
+        }
+    }
+
     var poster = document.getElementById('npPoster');
     var coverUrl = ch.cover || ch.cover_big || ch.stream_icon || '';
     if (coverUrl && coverUrl.indexOf('http') === 0) {
@@ -3438,8 +3464,17 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
 
     var playbackTimer = null;
     var isWebOS = (typeof webOS !== 'undefined' && webOS.platform && webOS.platform.tv);
+    var userAgent = navigator.userAgent.toLowerCase();
+    var isOldBrowser = userAgent.indexOf('chromium/34') >= 0 || userAgent.indexOf('chrome/34') >= 0;
     
-    console.log('[PLAY] isWebOS=' + isWebOS + ' userAgent=' + navigator.userAgent.substring(0, 50));
+    console.log('[PLAY] isWebOS=' + isWebOS + ' isOldBrowser=' + isOldBrowser + ' userAgent=' + navigator.userAgent.substring(0, 50));
+
+    if (isOldBrowser && isHls && !isWebOS) {
+        console.log('[PLAY] Old browser with HLS, cannot play natively');
+        document.getElementById('channelStatus').textContent = 'HLS bu tarayicida desteklenmiyor';
+        setStatus('HLS desteklenmiyor: ' + name);
+        return;
+    }
 
     if (isWebOS && isHls) {
         console.log('[PLAY] Using webOS media service for HLS');
