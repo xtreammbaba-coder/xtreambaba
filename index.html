@@ -3238,11 +3238,6 @@ function playWithFallback(video, rawUrl, isLive, name, attempt) {
     });
 }
 
-function playWithFallback(video, rawUrl, isLive, name, attempt) {
-    stopNativeVod(function() {
-        _doPlayWithFallback(video, rawUrl, isLive, name, attempt);
-    });
-}
 function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
     video.pause();
