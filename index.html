@@ -2542,7 +2542,7 @@ var Storage = {
         document.getElementById('password').value = '';
         selectedAccountId = null;
         var items = document.querySelectorAll('.server-item');
-        items.forEach(function(el) { el.className = 'server-item'; });
+        for (var i = 0; i < items.length; i++) { items[i].className = 'server-item'; }
         updateButtons();
     }
 
@@ -3095,7 +3095,7 @@ function loadProgressForVisibleItems() {
     if (currentMenuType === 'live') return;
     var accName = getAccountName();
     var items = document.querySelectorAll('.ch-item');
-    items.forEach(function(item) {
+    for (var ci = 0; ci < items.length; ci++) { (function(item) {
         var favBtn = item.querySelector('.ch-fav');
         if (!favBtn) return;
         var streamId = favBtn.getAttribute('data-stream-id');
@@ -3111,7 +3111,7 @@ function loadProgressForVisibleItems() {
             }
             progressDiv.style.display = '';
         }
-    });
+    })(items[ci]); }
 }
 
 function playItem(ch, overrideType) {
