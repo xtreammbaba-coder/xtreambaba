@@ -327,6 +327,28 @@
         
     }
     .server-item > * + * { margin-left: 10px; }
+    .server-actions {
+        
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        
+    }
+    .server-actions > * + * { margin-left: 8px; }
+    .row-btn {
+        
+        padding: 5px 12px;
+        border: none;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        
+    }
+    .row-connect { background: #4caf50; }
+    .row-del { background: #e94560; }
+    .app-version { text-align: center; font-size: 11px; color: #667; margin-top: 14px; padding-bottom: 8px; }
     .server-item:hover {
          background: rgba(255,255,255,0.05); 
     }

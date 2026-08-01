@@ -228,8 +228,15 @@
                     '<div class="server-name">' + esc(acc.accountName || acc.serverUrl || 'Hesap') + '</div>' +
                     '<div class="server-url">' + esc(acc.username || '-') + ' @ ' + esc(acc.serverUrl || '') + '</div>' +
                 '</div>' +
-                '<span class="server-arrow">&#9656;</span>';
+                '<div class="server-actions">' +
+                    '<button class="row-btn row-connect" type="button">Baglan</button>' +
+                    '<button class="row-btn row-del" type="button">Sil</button>' +
+                '</div>';
             item.addEventListener('click', function() { selectServer(i, acc); });
+            var cb = item.querySelector('.row-connect');
+            if (cb) cb.addEventListener('click', function(e) { e.stopPropagation(); selectServer(i, acc); connectToServer(); });
+            var db = item.querySelector('.row-del');
+            if (db) db.addEventListener('click', function(e) { e.stopPropagation(); selectServer(i, acc); deleteAccount(true); });
             list.appendChild(item);
         });
     }
@@ -303,9 +310,9 @@
         if (idx !== -1) selectServer(idx, accounts[idx]);
     }
 
-    function deleteAccount() {
+    function deleteAccount(noConfirm) {
         if (!selectedAccountId) return;
-        if (!confirm('Bu hesabi silmek istediginize emin misiniz?')) return;
+        if (!noConfirm && !confirm('Bu hesabi silmek istediginize emin misiniz?')) return;
         Storage.deleteAccount(selectedAccountId);
         clearForm();
         loadServers();
