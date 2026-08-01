@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xtream Baba</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8"></script>
 <style>
 *{
          margin: 0; padding: 0; box-sizing: border-box; 
@@ -3353,30 +3354,6 @@ function playItem(ch, overrideType) {
     var rating = ch.rating ? ' | ' + ch.rating + '/10' : '';
     document.getElementById('np-codec-text').textContent = codecParts.join(' | ') + rating;
 
-    var isHevc = ch.video_codec && (ch.video_codec.toLowerCase().indexOf('hevc') >= 0 || ch.video_codec.toLowerCase().indexOf('h265') >= 0);
-    var isAv1 = ch.video_codec && ch.video_codec.toLowerCase().indexOf('av1') >= 0;
-    var isEac3 = ch.audio_codec && (ch.audio_codec.toLowerCase().indexOf('eac3') >= 0 || ch.audio_codec.toLowerCase().indexOf('ddp') >= 0);
-    var isUnsupported = isHevc || isAv1 || isEac3;
-
-    console.log('[CODEC] video_codec=' + (ch.video_codec || 'N/A') + ' audio_codec=' + (ch.audio_codec || 'N/A'));
-    console.log('[CODEC] isHevc=' + isHevc + ' isAv1=' + isAv1 + ' isEac3=' + isEac3 + ' isUnsupported=' + isUnsupported);
-
-    if (isUnsupported) {
-        console.log('[CODEC] Unsupported codec detected, browser may not support it');
-        var userAgent = navigator.userAgent.toLowerCase();
-        var isOldBrowser = userAgent.indexOf('chromium/34') >= 0 || userAgent.indexOf('chrome/34') >= 0;
-        
-        if (isOldBrowser) {
-            var unsupportedCodecs = [];
-            if (isHevc) unsupportedCodecs.push('HEVC');
-            if (isAv1) unsupportedCodecs.push('AV1');
-            if (isEac3) unsupportedCodecs.push('EAC3');
-            
-            document.getElementById('channelStatus').textContent = 'Desteklenmeyen codec: ' + unsupportedCodecs.join(', ');
-            setStatus('Desteklenmeyen codec: ' + unsupportedCodecs.join(', '));
-            console.log('[CODEC] Old browser detected, unsupported codecs: ' + unsupportedCodecs.join(', '));
-        }
-    }
 
     var poster = document.getElementById('npPoster');
     var coverUrl = ch.cover || ch.cover_big || ch.stream_icon || '';
@@ -3498,28 +3475,61 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     console.log('[PLAY] attempt=' + label + ' isHls=' + isHls + ' isLive=' + isLive + ' url=' + url.substring(0, 120));
 
     var playbackTimer = null;
-    var isWebOS = (typeof webOS !== 'undefined' && webOS.platform && webOS.platform.tv);
-    var userAgent = navigator.userAgent.toLowerCase();
-    var isOldBrowser = userAgent.indexOf('chromium/34') >= 0 || userAgent.indexOf('chrome/34') >= 0;
-    
-    console.log('[PLAY] isWebOS=' + isWebOS + ' isOldBrowser=' + isOldBrowser + ' userAgent=' + navigator.userAgent.substring(0, 50));
 
-    if (isOldBrowser && isHls && !isWebOS) {
-        console.log('[PLAY] Old browser with HLS, cannot play natively');
-        document.getElementById('channelStatus').textContent = 'HLS bu tarayicida desteklenmiyor';
-        setStatus('HLS desteklenmiyor: ' + name);
-        return;
-    }
-
-    if (isWebOS && isHls) {
-        console.log('[PLAY] Using webOS media service for HLS');
-        hlsPlay(video, url, isLive, function() {
-            console.log('[PLAY] webOS media service failed, falling back to native');
-            playNativeVideo(video, url, isLive, function() {
-                handlePlaybackError(video, rawUrl, isLive, name, attempt, label, playbackTimer);
-            });
+    if (isHls && typeof Hls !== 'undefined' && typeof Hls.isSupported === 'function' && Hls.isSupported()) {
+        console.log('[PLAY] Using HLS.js');
+        hlsInstance = new Hls({
+            maxBufferLength: isLive ? 6 : 30,
+            maxMaxBufferLength: isLive ? 12 : 60,
+            enableWorker: false,
+            lowLatencyMode: isLive,
+            liveDurationInfinity: isLive,
+            maxLoadingDelay: isLive ? 4 : 10,
+            maxFragLookUpTolerance: 0.2
         });
-        return;
+        hlsInstance.loadSource(url);
+        hlsInstance.attachMedia(video);
+        
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+            console.log('[PLAY] HLS manifest parsed');
+            try {
+                video.play();
+                if (!isLive && currentStream) {
+                    var savedPos = Storage.getWatchPosition(getAccountName(), currentStream.id);
+                    var dur = video.duration;
+                    if (savedPos > 10 && dur && isFinite(dur) && dur > 0 && savedPos < dur - 10) {
+                        video.currentTime = savedPos;
+                        setStatus('Kaldigi yerden oynatiliyor: ' + name);
+                    }
+                }
+            } catch(e) {
+                console.log('[PLAY] HLS play error: ' + e);
+            }
+        });
+        
+        hlsInstance.on(Hls.Events.ERROR, function(evt, data) {
+            console.log('[PLAY] HLS error: ' + data.type + ' fatal=' + data.fatal);
+            if (data.fatal) {
+                if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+                if (isLive && attempt < 1 && !isAndroid()) {
+                    console.log('[PLAY] HLS fatal error, retrying with proxy...');
+                    document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
+                    playWithFallback(video, rawUrl, isLive, name, attempt + 1);
+                } else {
+                    console.log('[PLAY] HLS fatal error, falling back to native');
+                    video.src = url;
+                    video.load();
+                    video.play().catch(function(){});
+                }
+            }
+        });
+    } else {
+        console.log('[PLAY] Using native video');
+        video.src = url;
+        video.load();
+        video.play().catch(function(e) {
+            console.log('[PLAY] Native play error: ' + e);
+        });
     }
 
     video.onplaying = function() {
@@ -3547,9 +3557,6 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
                 setStatus('Kaldigi yerden oynatiliyor: ' + name);
             }
         }
-        video.play().catch(function(e) {
-            console.log('[PLAY] Play error after metadata: ' + e);
-        });
     };
 
     video.onresize = function() {
@@ -3573,7 +3580,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
         var err = video.error;
         var msg = 'Oynatma hatasi';
         if (err) {
-            if (err.code === 4) msg = 'Desteklenmeyen format (kod: ' + (video.src || '').substring(0, 60) + ')';
+            if (err.code === 4) msg = 'Desteklenmeyen format';
             else if (err.code === 2) msg = 'Ag hatasi';
             else if (err.code === 1) msg = 'Iptal edildi';
             else if (err.code === 3) msg = 'Decode hatasi';
@@ -3584,14 +3591,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
         stopSpeedMonitor();
         if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
         
-        if (err && err.code === 4 && !isHls && attempt < 2) {
-            console.log('[PLAY] Codec error, trying alternative format...');
-            document.getElementById('channelStatus').textContent = 'Alternatif format deneniyor...';
-            tryAlternativeFormat(video, rawUrl, isLive, name, attempt);
-        } else if (err && err.code === 4) {
-            console.log('[PLAY] Codec error, cannot be fixed with proxy');
-            document.getElementById('channelStatus').textContent = 'Desteklenmeyen codec (proxy ile cozulemez)';
-        } else if (attempt < 1 && !isAndroid()) {
+        if (attempt < 1 && !isAndroid()) {
             console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
             document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
             playWithFallback(video, rawUrl, isLive, name, attempt + 1);
@@ -3611,59 +3611,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
         }
     }, 15000);
 
-    video.src = url;
-    video.load();
     video.setAttribute('x-webkit-airplay', 'allow');
-    
-    var playPromise = video.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(function(e) {
-            console.log('[PLAY] Initial play error: ' + e);
-        });
-    }
-}
-
-function tryAlternativeFormat(video, rawUrl, isLive, name, attempt) {
-    console.log('[PLAY] Trying alternative format for: ' + rawUrl.substring(0, 80));
-    
-    var altUrl = rawUrl;
-    if (rawUrl.indexOf('.mp4') > 0) {
-        altUrl = rawUrl.replace('.mp4', '.mkv');
-        console.log('[PLAY] Trying MKV format');
-    } else if (rawUrl.indexOf('.mkv') > 0) {
-        altUrl = rawUrl.replace('.mkv', '.mp4');
-        console.log('[PLAY] Trying MP4 format');
-    }
-    
-    var video = document.getElementById('videoPlayer');
-    video.src = altUrl;
-    video.load();
-    
-    video.onerror = function() {
-        console.log('[PLAY] Alternative format also failed, trying proxy...');
-        playWithFallback(video, rawUrl, isLive, name, attempt + 1);
-    };
-    
-    video.onplaying = function() {
-        console.log('[PLAY] Alternative format working!');
-        document.getElementById('channelStatus').textContent = 'Oynatiliyor';
-    };
-    
-    video.play().catch(function(){});
-}
-
-function handlePlaybackError(video, rawUrl, isLive, name, attempt, label, playbackTimer) {
-    var msg = 'Oynatma hatasi';
-    console.log('[PLAY] Fallback playback failed');
-    document.getElementById('channelStatus').textContent = msg;
-    setStatus(msg);
-    stopSpeedMonitor();
-    if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
-    if (attempt < 1 && !isAndroid()) {
-        console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
-        document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
-        playWithFallback(video, rawUrl, isLive, name, attempt + 1);
-    }
 }
 
 function loadSeriesSeasons(ch) {
