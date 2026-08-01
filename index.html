@@ -3593,23 +3593,6 @@ function handlePlaybackError(video, rawUrl, isLive, name, attempt, label, playba
     }
 }
 
-    if (isHls) {
-        hlsPlay(video, url, isLive, function() {
-            if (playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
-            if (attempt < 1 && !isAndroid()) {
-                console.log('[PLAY] ' + label + ' failed, retrying with proxy...');
-                document.getElementById('channelStatus').textContent = 'Proxy ile yeniden deneniyor...';
-                playWithFallback(video, rawUrl, isLive, name, attempt + 1);
-            } else {
-                setStatus('Oynatma hatasi: ' + name);
-            }
-        });
-    } else {
-        video.src = url;
-        video.play().catch(function(){});
-    }
-}
-
 function loadSeriesSeasons(ch) {
     document.getElementById('chLabel').textContent = ch.name;
     document.getElementById('channelsList').innerHTML = '<div class="no-data">Bolumler yukleniyor...</div>';
