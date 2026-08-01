@@ -2021,7 +2021,8 @@ var Storage = {
     },
 
     getAccounts: function() {
-        return this.load('xtream_accounts') || [];
+        var data = this.load('xtream_accounts');
+        return Array.isArray(data) ? data : [];
     },
 
     saveAccounts: function(accounts) {
@@ -2168,18 +2169,36 @@ var Storage = {
     }
 
     window.addEventListener('error', function(e) {
+        if (e && e.target && e.target.nodeType === 1) return;
         showErrorBanner((e && e.message) || 'Bilinmeyen hata');
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+        showErrorBanner('Promise: ' + ((e && e.reason && e.reason.message) || 'rejection'));
     });
 
     function init() {
+        runStep('loadTheme', function() { loadTheme(); });
+        runStep('loadServers', function() { loadServers(); });
+        runStep('bindEvents', function() { bindEvents(); });
+        runStep('selectLast', function() { selectLastSavedAccount(); });
+    }
+
+    function runStep(name, fn) {
         try {
-            loadTheme();
-            loadServers();
-            bindEvents();
-            selectLastSavedAccount();
+            fn();
         } catch (e) {
-            showErrorBanner('init: ' + (e && e.message ? e.message : e));
-            if (e && e.stack) showErrorBanner('init: ' + e.message + '\n' + e.stack);
+            var msg = (e && e.message ? e.message : e) || String(e);
+            var st = e && e.stack ? String(e.stack) : '';
+            var lines = st.split('\n').filter(function(l) { return l.trim(); });
+            var loc = '';
+            for (var i = 0; i < lines.length && i < 3; i++) {
+                var l = lines[i];
+                if (l.indexOf('TypeError') !== -1 || l.indexOf('ReferenceError') !== -1 || l.indexOf('at ') !== -1 || l.indexOf('@') !== -1) {
+                    loc = l.trim().slice(0, 130);
+                    break;
+                }
+            }
+            showErrorBanner('[' + name + '] ' + msg.slice(0, 80) + (loc ? '  >>  ' + loc : ''));
         }
     }
 
@@ -2316,7 +2335,11 @@ var Storage = {
     function loadTheme() {
         var saved = localStorage.getItem('xtream_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', saved);
-        window.updateThemeIcons(saved);
+        if (typeof window.updateThemeIcons === 'function') {
+            window.updateThemeIcons(saved);
+        } else {
+            console.error('[app] updateThemeIcons not defined');
+        }
         document.getElementById('themeBtn').addEventListener('click', function() {
             var cur = document.documentElement.getAttribute('data-theme');
             var next = cur === 'dark' ? 'light' : 'dark';
@@ -2366,7 +2389,7 @@ var Storage = {
         if (!selectedAccountId) return;
         selectedAccountId = null;
         var items = document.querySelectorAll('.server-item');
-        items.forEach(function(el) { el.className = 'server-item'; });
+        for (var i = 0; i < items.length; i++) { items[i].className = 'server-item'; }
         updateButtons();
     }
 
@@ -2404,6 +2427,7 @@ var Storage = {
     }
 
     function renderServerList(accounts) {
+        accounts = Array.isArray(accounts) ? accounts : [];
         var list = document.getElementById('serverList');
         var count = document.getElementById('slCount');
         count.textContent = accounts.length;
@@ -2442,7 +2466,7 @@ var Storage = {
         document.getElementById('password').value = acc.password || '';
 
         var items = document.querySelectorAll('.server-item');
-        items.forEach(function(el, i) { el.className = i === index ? 'server-item active' : 'server-item'; });
+        for (var j = 0; j < items.length; j++) { items[j].className = j === index ? 'server-item active' : 'server-item'; }
 
         updateButtons();
 
