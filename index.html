@@ -2564,14 +2564,12 @@ function isElectronApp() {
     return !!(window.electronAPI);
 }
 
-function needsProxy() {
-    return location.protocol === 'https:' && !isAndroid();
-}
-
 function shouldProxyUrl(url) {
-    if (!needsProxy()) return false;
-    if (typeof url !== 'string' || url.indexOf('http:') !== 0) return false;
-    if (WORKER_URL && url.indexOf(WORKER_URL) === 0) return false;
+    if (isAndroid()) return false;
+    if (!WORKER_URL) return false;
+    if (typeof url !== 'string') return false;
+    if (url.indexOf('http:') !== 0) return false;
+    if (url.indexOf(WORKER_URL) === 0) return false;
     if (url.indexOf('api.allorigins.win') !== -1) return false;
     return true;
 }
@@ -3279,7 +3277,7 @@ function _doPlayWithFallback(video, rawUrl, isLive, name, attempt) {
     clearWatchSaveTimer();
     stopSpeedMonitor();
 
-    var useProxyFirst = !isAndroid() && location.protocol === 'https:' && typeof rawUrl === 'string' && rawUrl.indexOf('http:') === 0;
+    var useProxyFirst = !isAndroid() && typeof rawUrl === 'string' && rawUrl.indexOf('http:') === 0;
     var url = (attempt === 0 && !useProxyFirst) ? rawUrl : getLocalProxyUrl(rawUrl);
     var isHls = url.indexOf('.m3u8') !== -1 || (isLive && url.indexOf('.ts') !== -1);
     var label = (attempt === 0) ? 'direct' : 'proxy';
