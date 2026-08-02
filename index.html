@@ -1598,41 +1598,41 @@
             <div class="login-body">
                 <div class="input-row">
                     <label>Hesap Adi</label>
-                    <input type="text" id="accountName" placeholder="orn. Ev hesabi">
+                    <input type="text" id="accountName" placeholder="orn. Ev hesabi" tabindex="1" autocomplete="off">
                 </div>
                 <div class="input-row">
                     <label>Sunucu</label>
-                    <input type="text" id="serverUrl" placeholder="http://sunucu:port">
+                    <input type="text" id="serverUrl" placeholder="http://sunucu:port" tabindex="2" autocomplete="off">
                 </div>
                 <div class="input-row-group">
                     <div class="input-row half">
                         <label>Kullanici</label>
-                        <input type="text" id="username" placeholder="kullanici">
+                        <input type="text" id="username" placeholder="kullanici" tabindex="3" autocomplete="off">
                     </div>
                     <div class="input-row half">
                         <label>Sifre</label>
-                        <input type="password" id="password" placeholder="sifre">
+                        <input type="password" id="password" placeholder="sifre" tabindex="4" autocomplete="off">
                     </div>
                 </div>
 
                 <div class="btn-row">
-                    <button class="btn btn-green" id="saveBtn">
+                    <button class="btn btn-green" id="saveBtn" tabindex="5">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                         Kaydet
                     </button>
-                    <button class="btn btn-blue" id="editBtn" style="display:none">
+                    <button class="btn btn-blue" id="editBtn" style="display:none" tabindex="6">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                         Duzenle
                     </button>
-                    <button class="btn btn-red" id="deleteBtn" style="display:none">
+                    <button class="btn btn-red" id="deleteBtn" style="display:none" tabindex="7">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                         Sil
                     </button>
-                    <button class="btn btn-orange" id="transferBtn">
+                    <button class="btn btn-orange" id="transferBtn" tabindex="8">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                         Aktar
                     </button>
-                    <button class="btn btn-green" id="connectBtn" style="display:none">
+                    <button class="btn btn-green" id="connectBtn" style="display:none" tabindex="9">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
                         Baglan
                     </button>
@@ -1644,7 +1644,7 @@
                     <span>Kayitli Hesaplar</span>
                     <span class="sl-count" id="slCount">0</span>
                 </div>
-                <div class="server-list" id="serverList"></div>
+                <div class="server-list" id="serverList" tabindex="15"></div>
             </div>
 
             <div class="legal-disclaimer">
@@ -1671,18 +1671,18 @@
             </div>
             <div class="modal-body">
                 <p>M3U baglanti linkinizi girin:</p>
-                <input type="text" id="m3uLink" placeholder="" class="modal-input">
+                <input type="text" id="m3uLink" placeholder="" class="modal-input" tabindex="10" autocomplete="off">
             </div>
             <div class="modal-footer">
-                <button class="modal-btn ok" id="m3uOk">Tamam</button>
-                <button class="modal-btn cancel" id="m3uCancel">Iptal</button>
+                <button class="modal-btn ok" id="m3uOk" tabindex="11">Tamam</button>
+                <button class="modal-btn cancel" id="m3uCancel" tabindex="12">Iptal</button>
             </div>
         </div>
     </div>
 
     <div class="dropdown-menu" id="dropdownMenu" style="display:none;">
-        <div class="dropdown-item" id="m3uImport">M3U linki ile aktar</div>
-        <div class="dropdown-item" id="xtreamImport">Xtream API ile aktar</div>
+        <div class="dropdown-item" id="m3uImport" tabindex="13">M3U linki ile aktar</div>
+        <div class="dropdown-item" id="xtreamImport" tabindex="14">Xtream API ile aktar</div>
     </div>
 
     
@@ -1744,12 +1744,6 @@
                             </div>
                             <button class="ctrl-btn" id="pipBtn" title="Picture in Picture (P)">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
-                            </button>
-                            <button class="ctrl-btn" id="qualityBtn" title="Kalite (Q)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-2h-2v2zm0-4h2V7h-2v6z"/></svg>
-                            </button>
-                            <button class="ctrl-btn" id="speedBtn" title="Hiz (H)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M13 2.05v2.02c3.95.49 7 3.85 7 7.93 0 4.08-3.05 7.44-7 7.93v2.02c5.05-.5 9-4.76 9-9.95 0-5.19-3.95-9.45-9-9.95zM8.5 13l2.5-1.5v3L8.5 13zm4.5 0l2.5-1.5v3L13 13z"/></svg>
                             </button>
                             <button class="ctrl-btn" id="fullscreenBtn" title="Tam Ekran (F)">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
@@ -3063,8 +3057,8 @@ function setupAutoScale() {
         var baseHeight = 1080;
         var scale = Math.min(width / baseWidth, height / baseHeight);
 
-        if (scale < 0.8) scale = 0.8;
-        if (scale > 1.5) scale = 1.5;
+        if (scale < 0.9) scale = 0.9;
+        if (scale > 2.0) scale = 2.0;
 
         app.style.transform = 'scale(' + scale + ')';
         app.style.transformOrigin = 'center center';
@@ -3808,86 +3802,6 @@ function setupPlayerControls() {
         }
     });
 
-    document.getElementById('qualityBtn').addEventListener('click', function() {
-        showQualityMenu();
-    });
-
-    document.getElementById('speedBtn').addEventListener('click', function() {
-        showSpeedMenu();
-    });
-
-    function showQualityMenu() {
-        var existing = document.getElementById('qualityMenu');
-        if (existing) existing.remove();
-
-        if (!hlsInstance || !hlsInstance.levels || hlsInstance.levels.length === 0) {
-            setStatus('Kalite secenekleri yok');
-            return;
-        }
-
-        var menu = document.createElement('div');
-        menu.id = 'qualityMenu';
-        menu.innerHTML = '<div class="quality-menu-title">Kalite Secin</div>';
-
-        var autoItem = '<div class="quality-menu-item" data-level="-1">Otomatik</div>';
-        menu.innerHTML += autoItem;
-
-        for (var i = 0; i < hlsInstance.levels.length; i++) {
-            var level = hlsInstance.levels[i];
-            var height = level.height || '?';
-            var width = level.width || '?';
-            var bitrate = level.bitrate || '?';
-            var current = hlsInstance.currentLevel === i ? ' [AKTIF]' : '';
-            menu.innerHTML += '<div class="quality-menu-item" data-level="' + i + '">' + height + 'p (' + (bitrate / 1000).toFixed(1) + ' Mbps)' + current + '</div>';
-        }
-
-        menu.innerHTML += '<div class="quality-menu-close">Kapat</div>';
-        document.body.appendChild(menu);
-
-        menu.addEventListener('click', function(e) {
-            var item = e.target.closest('.quality-menu-item');
-            if (item) {
-                var level = parseInt(item.getAttribute('data-level'), 10);
-                hlsInstance.currentLevel = level;
-                setStatus('Kalite: ' + (level === -1 ? 'Otomatik' : hlsInstance.levels[level].height + 'p'));
-                menu.remove();
-            }
-            if (e.target.classList.contains('quality-menu-close')) menu.remove();
-        });
-    }
-
-    function showSpeedMenu() {
-        var existing = document.getElementById('speedMenu');
-        if (existing) existing.remove();
-
-        var speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-        var currentSpeed = video.playbackRate || 1;
-
-        var menu = document.createElement('div');
-        menu.id = 'speedMenu';
-        menu.innerHTML = '<div class="speed-menu-title">Hiz Secin</div>';
-
-        for (var i = 0; i < speeds.length; i++) {
-            var s = speeds[i];
-            var active = s === currentSpeed ? ' [AKTIF]' : '';
-            menu.innerHTML += '<div class="speed-menu-item" data-speed="' + s + '">' + s + 'x' + active + '</div>';
-        }
-
-        menu.innerHTML += '<div class="speed-menu-close">Kapat</div>';
-        document.body.appendChild(menu);
-
-        menu.addEventListener('click', function(e) {
-            var item = e.target.closest('.speed-menu-item');
-            if (item) {
-                var speed = parseFloat(item.getAttribute('data-speed'));
-                video.playbackRate = speed;
-                setStatus('Hiz: ' + speed + 'x');
-                menu.remove();
-            }
-            if (e.target.classList.contains('speed-menu-close')) menu.remove();
-        });
-    }
-
     var progressDragging = false;
 
     video.addEventListener('timeupdate', function() {
@@ -4296,13 +4210,17 @@ function startSpeedMonitor() {
 
 function stopSpeedMonitor() {
     if (speedMonitor) { clearInterval(speedMonitor); speedMonitor = null; }
-    document.getElementById('connBar').style.width = '0%';
-    document.getElementById('connSpeed').textContent = '0 Mbps';
+    var bar = document.getElementById('connBar');
+    var text = document.getElementById('connSpeed');
+    if (bar) bar.style.width = '0%';
+    if (text) text.textContent = '0 Mbps';
 }
 
 function updateConnBar(mbps) {
     var bar = document.getElementById('connBar');
     var text = document.getElementById('connSpeed');
+
+    if (!bar || !text) return;
 
     var pct = Math.min(100, (mbps / 20) * 100);
     bar.style.width = Math.max(2, pct) + '%';
@@ -4487,7 +4405,7 @@ function setupPiP() {
     var remoteMode = false;
     var focusEl = null;
 
-    var NAV_SELECTOR = 'button, input, textarea, .server-item, .cat-item, .ch-item, .tab, .back-btn, .search-clear, .dropdown-item, .modal-btn, .modal-close, .ch-fav';
+    var NAV_SELECTOR = 'button, input, textarea, .server-item, .cat-item, .ch-item, .tab, .back-btn, .search-clear, .dropdown-item, .modal-btn, .modal-close, .ch-fav, .modal-input, .server-list';
 
     function isVisible(el) {
         if (!el || el.nodeType !== 1) return false;
