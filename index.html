@@ -2724,7 +2724,7 @@ var Storage = {
                     '<button class="row-btn row-connect" type="button">Baglan</button>' +
                     '<button class="row-btn row-del" type="button">Sil</button>' +
                 '</div>';
-            item.addEventListener('click', function() { selectServer(i, acc); connectToServer(); });
+            item.addEventListener('click', function() { selectServer(i, acc); });
             var cb = item.querySelector('.row-connect');
             if (cb) cb.addEventListener('click', function(e) { e.stopPropagation(); selectServer(i, acc); connectToServer(); });
             var db = item.querySelector('.row-del');
@@ -2744,6 +2744,8 @@ var Storage = {
         for (var j = 0; j < items.length; j++) { items[j].className = j === index ? 'server-item active' : 'server-item'; }
 
         updateButtons();
+
+        document.getElementById('accountName').focus();
 
         try {
             var br = document.querySelector('.btn-row');
@@ -3242,14 +3244,23 @@ function setupAutoScale() {
         var height = window.innerHeight;
         var baseWidth = 1920;
         var baseHeight = 1080;
-        var scale = Math.min(width / baseWidth, height / baseHeight);
 
-        if (scale < 0.9) scale = 0.9;
-        if (scale > 2.0) scale = 2.0;
+        var scaleX = width / baseWidth;
+        var scaleY = height / baseHeight;
+        var scale = Math.min(scaleX, scaleY);
+
+        if (scale < 0.8) scale = 0.8;
+        if (scale > 1.8) scale = 1.8;
 
         app.style.transform = 'scale(' + scale + ')';
         app.style.transformOrigin = 'center center';
-        console.log('[SCALE] width=' + width + ' height=' + height + ' scale=' + scale.toFixed(2));
+
+        var videoCol = document.querySelector('.video-col');
+        if (videoCol) {
+            videoCol.style.maxHeight = (height / scale) + 'px';
+        }
+
+        console.log('[SCALE] width=' + width + ' height=' + height + ' scaleX=' + scaleX.toFixed(2) + ' scaleY=' + scaleY.toFixed(2) + ' scale=' + scale.toFixed(2));
     }
 
     applyScale();
