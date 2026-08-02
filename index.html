@@ -2472,6 +2472,16 @@ var Storage = {
         runStep('loadServers', function() { loadServers(); });
         runStep('bindEvents', function() { bindEvents(); });
         runStep('selectLast', function() { selectLastSavedAccount(); });
+
+        var video = document.getElementById('videoPlayer');
+        if (video) {
+            video.pause();
+            video.src = '';
+            if (typeof hlsInstance !== 'undefined' && hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+        }
     }
 
     function runStep(name, fn) {
@@ -2643,6 +2653,8 @@ var Storage = {
                     window.updateThemeIcons(next);
                 }
             });
+        } else {
+            console.error('[app] themeBtn not found');
         }
     }
 
@@ -2810,7 +2822,7 @@ var Storage = {
         var accounts = Storage.getAccounts();
         clearForm();
         loadServers();
-        selectServer(accounts.length - 1, accounts[accounts.length - 1]);
+        document.getElementById('accountName').focus();
     }
 
     function editAccount() {
@@ -3284,10 +3296,11 @@ function setupAutoScale() {
 
         var scaleX = width / baseWidth;
         var scaleY = height / baseHeight;
+
         var scale = Math.min(scaleX, scaleY);
 
-        if (scale < 0.8) scale = 0.8;
-        if (scale > 1.8) scale = 1.8;
+        if (scale < 0.5) scale = 0.5;
+        if (scale > 3.0) scale = 3.0;
 
         app.style.transform = 'scale(' + scale + ')';
         app.style.transformOrigin = 'center center';
@@ -3297,10 +3310,12 @@ function setupAutoScale() {
             videoCol.style.maxHeight = (height / scale) + 'px';
         }
 
-        console.log('[SCALE] width=' + width + ' height=' + height + ' scaleX=' + scaleX.toFixed(2) + ' scaleY=' + scaleY.toFixed(2) + ' scale=' + scale.toFixed(2));
+        console.log('[SCALE] width=' + width + ' height=' + height + ' base=' + baseWidth + 'x' + baseHeight + ' scaleX=' + scaleX.toFixed(2) + ' scaleY=' + scaleY.toFixed(2) + ' finalScale=' + scale.toFixed(2));
     }
 
     setTimeout(applyScale, 100);
+    setTimeout(applyScale, 500);
+    setTimeout(applyScale, 1000);
     window.addEventListener('resize', applyScale);
 }
 
@@ -3999,7 +4014,13 @@ function setupPlayerControls() {
     });
 
     document.getElementById('playPauseBtn').addEventListener('click', function() {
-        if (video.paused) video.play(); else video.pause();
+        if (video.paused) {
+            video.play().catch(function(e) {
+                console.log('[PLAY] Play error:', e);
+            });
+        } else {
+            video.pause();
+        }
     });
 
     video.addEventListener('play', function() { updatePlayPauseIcon(false); });
