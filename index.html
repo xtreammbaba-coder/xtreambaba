@@ -32,29 +32,43 @@
         
     }
 #loginScreen .login-wrapper{
-        
+
         width: 100%;
-        max-width: 420px;
+        max-width: 900px;
         padding: 16px;
-        
+
     }
 #loginScreen .login-card{
-        
+
         background: #111b30;
         border: 1px solid #1a2744;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-        
+
     }
 #loginScreen [data-theme="light"] .login-card{
-        
+
         background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-        
+
+    }
+#loginScreen .login-content {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+    }
+#loginScreen .login-body {
+        flex: 1;
+        min-width: 0;
+    }
+#loginScreen .server-list-section {
+        flex: 1;
+        min-width: 0;
+        max-width: 400px;
     }
 #loginScreen .login-top{
         
@@ -1767,56 +1781,58 @@
                 </div>
             </div>
 
-            <div class="login-body">
-                <div class="input-row">
-                    <label>Hesap Adi</label>
-                    <input type="text" id="accountName" placeholder="orn. Ev hesabi" tabindex="1" autocomplete="off" spellcheck="false" autocapitalize="off">
-                </div>
-                <div class="input-row">
-                    <label>Sunucu</label>
-                    <input type="text" id="serverUrl" placeholder="http://sunucu:port" tabindex="2" autocomplete="off" spellcheck="false" autocapitalize="off">
-                </div>
-                <div class="input-row-group">
-                    <div class="input-row half">
-                        <label>Kullanici</label>
-                        <input type="text" id="username" placeholder="kullanici" tabindex="3" autocomplete="off" spellcheck="false" autocapitalize="off">
+            <div class="login-content">
+                <div class="login-body">
+                    <div class="input-row">
+                        <label>Hesap Adi</label>
+                        <input type="text" id="accountName" placeholder="orn. Ev hesabi" tabindex="1" autocomplete="off" spellcheck="false" autocapitalize="off">
                     </div>
-                    <div class="input-row half">
-                        <label>Sifre</label>
-                        <input type="password" id="password" placeholder="sifre" tabindex="4" autocomplete="off" spellcheck="false" autocapitalize="off">
+                    <div class="input-row">
+                        <label>Sunucu</label>
+                        <input type="text" id="serverUrl" placeholder="http://sunucu:port" tabindex="2" autocomplete="off" spellcheck="false" autocapitalize="off">
+                    </div>
+                    <div class="input-row-group">
+                        <div class="input-row half">
+                            <label>Kullanici</label>
+                            <input type="text" id="username" placeholder="kullanici" tabindex="3" autocomplete="off" spellcheck="false" autocapitalize="off">
+                        </div>
+                        <div class="input-row half">
+                            <label>Sifre</label>
+                            <input type="password" id="password" placeholder="sifre" tabindex="4" autocomplete="off" spellcheck="false" autocapitalize="off">
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-green" id="saveBtn" tabindex="5">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            Kaydet
+                        </button>
+                        <button class="btn btn-blue" id="editBtn" style="display:none" tabindex="6">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                            Duzenle
+                        </button>
+                        <button class="btn btn-red" id="deleteBtn" style="display:none" tabindex="7">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            Sil
+                        </button>
+                        <button class="btn btn-orange" id="transferBtn" tabindex="8">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            Aktar
+                        </button>
+                        <button class="btn btn-green" id="connectBtn" style="display:none" tabindex="9">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            Baglan
+                        </button>
                     </div>
                 </div>
 
-                <div class="btn-row">
-                    <button class="btn btn-green" id="saveBtn" tabindex="5">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        Kaydet
-                    </button>
-                    <button class="btn btn-blue" id="editBtn" style="display:none" tabindex="6">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        Duzenle
-                    </button>
-                    <button class="btn btn-red" id="deleteBtn" style="display:none" tabindex="7">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                        Sil
-                    </button>
-                    <button class="btn btn-orange" id="transferBtn" tabindex="8">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        Aktar
-                    </button>
-                    <button class="btn btn-green" id="connectBtn" style="display:none" tabindex="9">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                        Baglan
-                    </button>
+                <div class="server-list-section">
+                    <div class="sl-header">
+                        <span>Kayitli Hesaplar</span>
+                        <span class="sl-count" id="slCount">0</span>
+                    </div>
+                    <div class="server-list" id="serverList" tabindex="15"></div>
                 </div>
-            </div>
-
-            <div class="server-list-section">
-                <div class="sl-header">
-                    <span>Kayitli Hesaplar</span>
-                    <span class="sl-count" id="slCount">0</span>
-                </div>
-                <div class="server-list" id="serverList" tabindex="15"></div>
             </div>
 
             <div class="legal-disclaimer">
@@ -2615,13 +2631,19 @@ var Storage = {
         } else {
             console.error('[app] updateThemeIcons not defined');
         }
-        document.getElementById('themeBtn').addEventListener('click', function() {
-            var cur = document.documentElement.getAttribute('data-theme');
-            var next = cur === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('xtream_theme', next);
-            window.updateThemeIcons(next);
-        });
+
+        var themeBtn = document.getElementById('themeBtn');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', function() {
+                var cur = document.documentElement.getAttribute('data-theme');
+                var next = cur === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('xtream_theme', next);
+                if (typeof window.updateThemeIcons === 'function') {
+                    window.updateThemeIcons(next);
+                }
+            });
+        }
     }
 
     window.updateThemeIcons = function(theme) {
@@ -2687,6 +2709,13 @@ var Storage = {
             if (accs.length) account.id = accs[accs.length - 1].id;
         }
         Storage.setActiveAccount(account);
+
+        var video = document.getElementById('videoPlayer');
+        if (video) {
+            video.pause();
+            video.src = '';
+            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+        }
         if (typeof window.showPlayerScreen === 'function') {
             window.showPlayerScreen();
         } else {
@@ -2755,10 +2784,15 @@ var Storage = {
 
     function updateButtons() {
         var has = !!selectedAccountId;
-        document.getElementById('saveBtn').style.display = has ? 'none' : '';
-        document.getElementById('editBtn').style.display = has ? '' : 'none';
-        document.getElementById('deleteBtn').style.display = has ? '' : 'none';
-        document.getElementById('connectBtn').style.display = has ? '' : 'none';
+        var saveBtn = document.getElementById('saveBtn');
+        var editBtn = document.getElementById('editBtn');
+        var deleteBtn = document.getElementById('deleteBtn');
+        var connectBtn = document.getElementById('connectBtn');
+
+        if (saveBtn) saveBtn.style.display = has ? 'none' : '';
+        if (editBtn) editBtn.style.display = has ? '' : 'none';
+        if (deleteBtn) deleteBtn.style.display = has ? '' : 'none';
+        if (connectBtn) connectBtn.style.display = has ? '' : 'none';
     }
 
     // === CRUD ===
@@ -3237,7 +3271,10 @@ window.initPlayer = function() {
 
 function setupAutoScale() {
     var app = document.getElementById('app');
-    if (!app) return;
+    if (!app) {
+        console.log('[SCALE] app element not found');
+        return;
+    }
 
     function applyScale() {
         var width = window.innerWidth;
@@ -3263,7 +3300,7 @@ function setupAutoScale() {
         console.log('[SCALE] width=' + width + ' height=' + height + ' scaleX=' + scaleX.toFixed(2) + ' scaleY=' + scaleY.toFixed(2) + ' scale=' + scale.toFixed(2));
     }
 
-    applyScale();
+    setTimeout(applyScale, 100);
     window.addEventListener('resize', applyScale);
 }
 
