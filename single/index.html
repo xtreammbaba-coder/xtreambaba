@@ -2662,10 +2662,15 @@ var Storage = {
         var ids = ['themeIcon', 'pThemeIcon'];
         var sun = '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2"/><line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2"/><line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2"/>';
         var moon = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" fill="none"/>';
+        console.log('[THEME] Updating icons to theme:', theme);
         for (var i = 0; i < ids.length; i++) {
             var icon = document.getElementById(ids[i]);
-            if (!icon) continue;
+            if (!icon) {
+                console.log('[THEME] Icon not found:', ids[i]);
+                continue;
+            }
             icon.innerHTML = theme === 'light' ? sun : moon;
+            console.log('[THEME] Icon updated:', ids[i]);
         }
     };
 
@@ -3275,49 +3280,10 @@ window.initPlayer = function() {
     setupThemeToggle();
     setupPiP();
     setupAutoReconnect();
-    setupAutoScale();
     loadCategories('live');
     startClock();
     checkForUpdate();
 };
-
-function setupAutoScale() {
-    var app = document.getElementById('app');
-    if (!app) {
-        console.log('[SCALE] app element not found');
-        return;
-    }
-
-    function applyScale() {
-        var width = window.innerWidth;
-        var height = window.innerHeight;
-        var baseWidth = 1920;
-        var baseHeight = 1080;
-
-        var scaleX = width / baseWidth;
-        var scaleY = height / baseHeight;
-
-        var scale = Math.min(scaleX, scaleY);
-
-        if (scale < 0.5) scale = 0.5;
-        if (scale > 3.0) scale = 3.0;
-
-        app.style.transform = 'scale(' + scale + ')';
-        app.style.transformOrigin = 'center center';
-
-        var videoCol = document.querySelector('.video-col');
-        if (videoCol) {
-            videoCol.style.maxHeight = (height / scale) + 'px';
-        }
-
-        console.log('[SCALE] width=' + width + ' height=' + height + ' base=' + baseWidth + 'x' + baseHeight + ' scaleX=' + scaleX.toFixed(2) + ' scaleY=' + scaleY.toFixed(2) + ' finalScale=' + scale.toFixed(2));
-    }
-
-    setTimeout(applyScale, 100);
-    setTimeout(applyScale, 500);
-    setTimeout(applyScale, 1000);
-    window.addEventListener('resize', applyScale);
-}
 
 function startClock() {
     var el = document.getElementById('clock');
@@ -4014,12 +3980,16 @@ function setupPlayerControls() {
     });
 
     document.getElementById('playPauseBtn').addEventListener('click', function() {
+        console.log('[PLAY] Button clicked, paused:', video.paused);
         if (video.paused) {
-            video.play().catch(function(e) {
+            video.play().then(function() {
+                console.log('[PLAY] Play success');
+            }).catch(function(e) {
                 console.log('[PLAY] Play error:', e);
             });
         } else {
             video.pause();
+            console.log('[PLAY] Pause success');
         }
     });
 
@@ -4966,6 +4936,18 @@ function setupPiP() {
     function showLoginScreen() {
         document.getElementById('loginScreen').style.display = 'block';
         document.getElementById('playerScreen').style.display = 'none';
+
+        var video = document.getElementById('videoPlayer');
+        if (video) {
+            video.pause();
+            video.src = '';
+            console.log('[VIDEO] Video stopped when returning to panel screen');
+        }
+        if (typeof hlsInstance !== 'undefined' && hlsInstance) {
+            hlsInstance.destroy();
+            hlsInstance = null;
+            console.log('[VIDEO] HLS instance destroyed');
+        }
     }
     window.showPlayerScreen = showPlayerScreen;
     window.showLoginScreen = showLoginScreen;
